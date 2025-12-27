@@ -1,0 +1,13 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+bin/
+obj/
+
+# Project
+external/glfw/
+external/glm/
+out/
