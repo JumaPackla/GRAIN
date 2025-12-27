@@ -8,6 +8,5 @@ bin/
 obj/
 
 # Project
-external/glfw/
-external/glm/
+external/
 out/
