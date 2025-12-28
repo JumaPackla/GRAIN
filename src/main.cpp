@@ -47,7 +47,7 @@ int main() {
 		3,4,5   // Triangle 2
 	};
 
-	triangleMesh combinedMesh(vertices, indices);
+	triangleMesh triangleCombinedMesh1(vertices, indices);
 
 	sphereBody sphereBody1;
 	sphereRenderer sphereMesh1(sphereBody1, 50, 100, glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
@@ -111,8 +111,7 @@ int main() {
 		glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		combinedMesh.bind();
-		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
+		triangleCombinedMesh1.draw();
 
 		sphereMesh1.draw();
 

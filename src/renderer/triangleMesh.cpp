@@ -27,17 +27,6 @@ triangleMesh::triangleMesh(std::vector<Vertex> mesh_vertices, std::vector<GLuint
     glBindVertexArray(0);
 }
 
-triangleMesh::~triangleMesh() {
-    if (EBO) glDeleteBuffers(1, &EBO);
-    if (VBO) glDeleteBuffers(1, &VBO);
-    if (VAO) glDeleteVertexArrays(1, &VAO);
-}
-
-int triangleMesh::bind() const {
-    glBindVertexArray(VAO);
-    return static_cast<int>(indices.size());
-}
-
 triangleMesh::triangleMesh(triangleMesh&& other) noexcept
     : VAO(other.VAO), VBO(other.VBO), EBO(other.EBO),
     vertices(std::move(other.vertices)),
@@ -66,4 +55,23 @@ triangleMesh& triangleMesh::operator=(triangleMesh&& other) noexcept
         other.EBO = 0;
     }
     return *this;
+}
+
+triangleMesh::~triangleMesh() 
+{
+    if (EBO) glDeleteBuffers(1, &EBO);
+    if (VBO) glDeleteBuffers(1, &VBO);
+    if (VAO) glDeleteVertexArrays(1, &VAO);
+}
+
+int triangleMesh::bind() const 
+{
+    glBindVertexArray(VAO);
+    return static_cast<int>(indices.size());
+}
+
+void triangleMesh::draw() 
+{
+    int indexCount = bind();
+    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 }

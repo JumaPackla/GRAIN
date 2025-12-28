@@ -25,6 +25,8 @@ public:
 
     int bind() const;
 
+    void draw();
+
 private:
     GLuint VAO = 0;
     GLuint VBO = 0;

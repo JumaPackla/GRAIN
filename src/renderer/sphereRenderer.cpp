@@ -12,7 +12,8 @@ sphereRenderer::sphereRenderer(const sphereBody& body, int stacks, int points, g
     buildMesh(stacks, points);
 }
 
-void sphereRenderer::buildMesh(int stacks, int points) {
+void sphereRenderer::buildMesh(int stacks, int points) 
+{
     std::vector<glm::vec3> total_vertices((stacks + 1) * points);
 
     for (int stack = 0; stack <= stacks; stack++) {
