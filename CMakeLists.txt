@@ -15,13 +15,13 @@ target_include_directories(glad PUBLIC external/glad/include)
 find_package(OpenGL REQUIRED)
 
 # Renderer
-file(GLOB_RECURSE RENDERER_SRC src/renderer/*.cpp)
+file(GLOB_RECURSE RENDERER_SRC CONFIGURE_DEPENDS src/renderer/*.cpp)
 add_library(renderer ${RENDERER_SRC})
 target_include_directories(renderer PUBLIC include external/glm external/glad/include)
 target_link_libraries(renderer PUBLIC glad OpenGL::GL)
 
 # Engine
-file(GLOB_RECURSE ENGINE_SRC src/engine/*.cpp)
+file(GLOB_RECURSE ENGINE_SRC CONFIGURE_DEPENDS src/engine/*.cpp)
 add_library(engine ${ENGINE_SRC})
 target_include_directories(engine PUBLIC include external/glm external/glad/include)
 target_link_libraries(engine PUBLIC renderer glad OpenGL::GL)

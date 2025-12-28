@@ -1,23 +1,26 @@
-#include "renderer/sphereMesh.h"
-#include "renderer/triangleMesh.h"
 #include <iostream>
 #include <math.h>
+
+#include "renderer/sphereRenderer.h"
+#include "renderer/sphereBody.h"
+#include "renderer/triangleMesh.h"
+
 #define PI 3.14159265
 
-sphereMesh::sphereMesh(float r, glm::vec3 pos, int stks, int pnts, glm::vec4 col) : radius(r), position(pos), stacks(stks), points(pnts), colour(col), mesh(nullptr)
+sphereRenderer::sphereRenderer(const sphereBody& body, int stacks, int points, glm::vec4 colour) : body(body), colour(colour)
 {
-    buildMesh();
+    buildMesh(stacks, points);
 }
 
-void sphereMesh::buildMesh() {
+void sphereRenderer::buildMesh(int stacks, int points) {
     std::vector<glm::vec3> total_vertices((stacks + 1) * points);
 
     for (int stack = 0; stack <= stacks; stack++) {
-        glm::vec3 stack_center = position;
-        stack_center.y = position.y - (radius * ((stacks / 2) - stack) / (stacks / 2));
+        glm::vec3 stack_center = body.position;
+        stack_center.y = body.position.y - (body.radius * ((stacks / 2) - stack) / (stacks / 2));
 
-        float new_radius = sqrt(pow(radius, 2) - pow((position.y - stack_center.y), 2));
-        float angle = (2 * PI) / points;
+        double new_radius = sqrt(pow(body.radius, 2) - pow((body.position.y - stack_center.y), 2));
+        double angle = (2 * PI) / points;
 
         for (int point = 0; point < points; point++) {
             glm::vec3 vertice = { stack_center.x + (new_radius * sin(angle * (point + 1))), stack_center.y, stack_center.z + (new_radius * cos(angle * (point + 1))) };
@@ -88,11 +91,11 @@ void sphereMesh::buildMesh() {
 
     stack_indices.resize(indx);
 
-    mesh = new triangleMesh(stack_vertices, stack_indices);
+    mesh = triangleMesh(stack_vertices, stack_indices);
 }
 
-void sphereMesh::draw()
+void sphereRenderer::draw()
 {
-    int indexCount = mesh->bind();
+    int indexCount = mesh.bind();
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 }

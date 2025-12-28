@@ -1,6 +1,7 @@
-#include "engine/shaderPipeline.h"
-#include <fstream>
 #include <iostream>
+#include <fstream>
+
+#include "engine/shaderPipeline.h"
 
 std::string readFile(std::string& filePath) {
 	std::string content;

@@ -1,25 +1,35 @@
-#include "glad/glad.h"
-#include "glm/glm.hpp"
-
-#include "vector"
-
 #pragma once
 
+#include <vector>
+#include <glm/glm.hpp>
+#include <glad/glad.h>
+
 struct Vertex {
-	glm::vec3 position;
-	glm::vec4 color;
+    glm::vec3 position;
+    glm::vec4 color;
 };
 
 class triangleMesh
 {
 public:
-	triangleMesh(std::vector<Vertex> mesh_vertices, std::vector<GLuint> mesh_indices);
-	~triangleMesh();
+    triangleMesh() = default;
+    triangleMesh(std::vector<Vertex> mesh_vertices, std::vector<GLuint> mesh_indices);
 
-	int bind();
+    triangleMesh(const triangleMesh&) = delete;
+    triangleMesh& operator=(const triangleMesh&) = delete;
+
+    triangleMesh(triangleMesh&& other) noexcept;
+    triangleMesh& operator=(triangleMesh&& other) noexcept;
+
+    ~triangleMesh();
+
+    int bind() const;
 
 private:
-	GLuint VAO, VBO, EBO;
-	std::vector<Vertex> vertices;
-	std::vector<GLuint> indices;
+    GLuint VAO = 0;
+    GLuint VBO = 0;
+    GLuint EBO = 0;
+
+    std::vector<Vertex> vertices;
+    std::vector<GLuint> indices;
 };

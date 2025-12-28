@@ -1,11 +1,12 @@
 ﻿#include <iostream>
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #include "engine/shaderPipeline.h"
 #include "engine/cameraClass.h"
 #include "renderer/triangleMesh.h"
-#include "renderer/sphereMesh.h"
+#include "renderer/sphereRenderer.h"
+#include "renderer/sphereBody.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -48,13 +49,8 @@ int main() {
 
 	triangleMesh combinedMesh(vertices, indices);
 
-	sphereMesh sphere1(5.0f, glm::vec3(0.0f, 0.0f, 0.0f), 50, 100, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-
-	sphereMesh sphere2(4.0f, glm::vec3(34.0f, 20.0f, 0.0f), 50, 100, glm::vec4(0.2f, 0.7f, 0.0f, 1.0f));
-
-	sphereMesh sphere3(1.5f, glm::vec3(0.0f, 9.0f, 7.0f), 50, 100, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-
-	sphereMesh sphere4(3.0f, glm::vec3(34.0f, 17.0f, 3.0f), 50, 100, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	sphereBody sphereBody1;
+	sphereRenderer sphereMesh1(sphereBody1, 50, 100, glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
 
 	shaderPipeline shader("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
 
@@ -118,10 +114,7 @@ int main() {
 		combinedMesh.bind();
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
 
-		sphere1.draw();
-		sphere2.draw();
-		sphere3.draw();
-		sphere4.draw();
+		sphereMesh1.draw();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

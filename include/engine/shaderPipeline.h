@@ -1,7 +1,8 @@
-#include <string>
-#include "glad/glad.h"
-
 #pragma once
+
+#include <string>
+#include <glad/glad.h>
+
 class shaderPipeline
 {
 public:
