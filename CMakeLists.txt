@@ -26,8 +26,6 @@ add_library(engine ${ENGINE_SRC})
 target_include_directories(engine PUBLIC include external/glm external/glad/include)
 target_link_libraries(engine PUBLIC glad OpenGL::GL)
 
-###############################
-
 # Simulation
 file(GLOB_RECURSE SIMULATION_SRC CONFIGURE_DEPENDS src/simulation/*.cpp)
 add_library(simulation ${SIMULATION_SRC})
