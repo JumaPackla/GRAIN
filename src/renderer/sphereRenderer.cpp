@@ -1,8 +1,8 @@
 #include <iostream>
 #include <math.h>
 
+#include "particles/sphereBody.h"
 #include "renderer/sphereRenderer.h"
-#include "renderer/sphereBody.h"
 #include "renderer/triangleMesh.h"
 
 #define PI 3.14159265

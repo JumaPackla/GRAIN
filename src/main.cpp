@@ -4,9 +4,9 @@
 
 #include "engine/shaderPipeline.h"
 #include "engine/cameraClass.h"
-#include "renderer/triangleMesh.h"
+#include "particles/sphereBody.h"
 #include "renderer/sphereRenderer.h"
-#include "renderer/sphereBody.h"
+#include "renderer/triangleMesh.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
