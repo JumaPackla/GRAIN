@@ -12,7 +12,7 @@
 Application::Application()
 {
     initGLFW();
-    shader = std::make_unique<shaderPipeline>("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
+    initShaders();
     initScene();
 }
 
@@ -52,6 +52,12 @@ void Application::framebufferSizeCallback(GLFWwindow* window, int width, int hei
     glViewport(0, 0, width, height);
 }
 
+void Application::initShaders()
+{
+    triangle_shader = std::make_unique<Shader>("shaders/triangle_vertex_shader.glsl", "shaders/triangle_fragment_shader.glsl");
+    dust_shader = std::make_unique<Shader>("shaders/dust_vertex_shader.glsl", "shaders/dust_fragment_shader.glsl");
+}
+
 void Application::initScene() 
 {
     std::vector<Vertex> vertices = {
@@ -65,13 +71,13 @@ void Application::initScene()
     };
     std::vector<GLuint> indices = { 0,1,2, 3,4,5 };
 
-    triangleCombinedMesh1 = std::make_unique<triangleMesh>(vertices, indices);
+    triangleMesh1 = std::make_unique<triangleRenderer>(vertices, indices);
 
     sphereBody sphereBody1;
     sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
     dustBody dustBody1;
-    dustPoint1 = std::make_unique<dustRenderer>(dustBody1);
+    dustPoints1 = std::make_unique<dustRenderer>(std::vector<dustBody>{dustBody1});
 }
 
 void Application::run() 
@@ -125,27 +131,37 @@ void Application::update(float dt)
     cameraController.update(camera, input, dt);
 }
 
-void Application::render() 
+void Application::render()
 {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     float aspect = float(width) / height;
 
-    glm::mat4 vp = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f)
-        * camera.getViewMatrix();
-
-    shader->bind();
-    glUniformMatrix4fv(glGetUniformLocation(shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+    glm::mat4 vp = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f) * camera.getViewMatrix();
 
     glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (triangleCombinedMesh1)
-        triangleCombinedMesh1->draw();
+    if (triangle_shader)
+    {
+        triangle_shader->bind();
+        glUniformMatrix4fv(glGetUniformLocation(triangle_shader->getProgram(), "u_ViewProjection") , 1, GL_FALSE, glm::value_ptr(vp));
 
-    if (sphereMesh1)
-        sphereMesh1->draw();
+        if (triangleMesh1) {
+            triangleMesh1->draw();
+        }
+        //if (sphereMesh1) {
+        //    sphereMesh1->draw();
+        //}
+    }
 
-    if (dustPoint1)
-        dustPoint1->draw();
+    if (dust_shader)
+    {
+        dust_shader->bind();
+        glUniformMatrix4fv(glGetUniformLocation(dust_shader->getProgram(), "u_ViewProjection") , 1, GL_FALSE, glm::value_ptr(vp));
+
+        if (dustPoints1) {
+            dustPoints1->draw();
+        }
+    }
 }

@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "triangleMesh.h"
+#include "triangleRenderer.h"
 
 struct sphereBody;
 
@@ -16,7 +16,7 @@ public:
 private:
 	const sphereBody& body;
 	glm::vec4 colour;
-	triangleMesh mesh;
+	triangleRenderer mesh;
 
 	void buildMesh(int stacks, int points);
 };

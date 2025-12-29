@@ -1,6 +1,6 @@
-#include "renderer/triangleMesh.h"
+#include "renderer/triangleRenderer.h"
 
-triangleMesh::triangleMesh(std::vector<Vertex> mesh_vertices, std::vector<GLuint> mesh_indices) : vertices(std::move(mesh_vertices)), indices(std::move(mesh_indices))
+triangleRenderer::triangleRenderer(std::vector<Vertex> mesh_vertices, std::vector<GLuint> mesh_indices) : vertices(std::move(mesh_vertices)), indices(std::move(mesh_indices))
 {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -27,14 +27,14 @@ triangleMesh::triangleMesh(std::vector<Vertex> mesh_vertices, std::vector<GLuint
     glBindVertexArray(0);
 }
 
-triangleMesh::triangleMesh(triangleMesh&& other) noexcept : VAO(other.VAO), VBO(other.VBO), EBO(other.EBO), vertices(std::move(other.vertices)), indices(std::move(other.indices))
+triangleRenderer::triangleRenderer(triangleRenderer&& other) noexcept : VAO(other.VAO), VBO(other.VBO), EBO(other.EBO), vertices(std::move(other.vertices)), indices(std::move(other.indices))
 {
     other.VAO = 0;
     other.VBO = 0;
     other.EBO = 0;
 }
 
-triangleMesh& triangleMesh::operator=(triangleMesh&& other) noexcept
+triangleRenderer& triangleRenderer::operator=(triangleRenderer&& other) noexcept
 {
     if (this != &other) {
         if (VAO) glDeleteVertexArrays(1, &VAO);
@@ -54,20 +54,20 @@ triangleMesh& triangleMesh::operator=(triangleMesh&& other) noexcept
     return *this;
 }
 
-triangleMesh::~triangleMesh() 
+triangleRenderer::~triangleRenderer() 
 {
     if (EBO) glDeleteBuffers(1, &EBO);
     if (VBO) glDeleteBuffers(1, &VBO);
     if (VAO) glDeleteVertexArrays(1, &VAO);
 }
 
-int triangleMesh::bind() const 
+int triangleRenderer::bind() const 
 {
     glBindVertexArray(VAO);
     return static_cast<int>(indices.size());
 }
 
-void triangleMesh::draw() 
+void triangleRenderer::draw() 
 {
     int indexCount = bind();
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);

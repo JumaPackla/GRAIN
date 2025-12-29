@@ -4,15 +4,28 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 
+#include "particles/dustBody.h"
+
 struct dustBody;
 
 class dustRenderer
 {
 public:
-	dustRenderer(const dustBody& body);
+    dustRenderer(const std::vector<dustBody>& bodies);
+    
+    dustRenderer(const dustRenderer&) = delete;
+    dustRenderer& operator=(const dustRenderer&) = delete;
 
-	void draw();
+    dustRenderer(dustRenderer&& other) noexcept;
+    dustRenderer& operator=(dustRenderer&& other) noexcept;
+
+    ~dustRenderer();
+
+    void draw();
 
 private:
-	const dustBody& body;
+    GLuint VAO = 0;
+    GLuint VBO = 0;
+
+    std::vector<dustBody> dustBodies;
 };

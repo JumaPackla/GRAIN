@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "engine/shaderPipeline.h"
+#include "engine/Shader.h"
 
 std::string readFile(std::string& filePath) 
 {
@@ -20,7 +20,7 @@ std::string readFile(std::string& filePath)
 	return content;
 };
 
-shaderPipeline::shaderPipeline(std::string vertex_shader_location, std::string fragment_shader_location) 
+Shader::Shader(std::string vertex_shader_location, std::string fragment_shader_location)
 {
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -54,12 +54,12 @@ shaderPipeline::shaderPipeline(std::string vertex_shader_location, std::string f
 	}
 }
 
-shaderPipeline::~shaderPipeline() 
+Shader::~Shader()
 {
 	glDeleteProgram(shader_program);
 }
 
-int shaderPipeline::bind() 
+int Shader::bind()
 {
 	glUseProgram(shader_program);
 	return 0;

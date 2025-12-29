@@ -3,7 +3,7 @@
 
 #include "particles/sphereBody.h"
 #include "renderer/sphereRenderer.h"
-#include "renderer/triangleMesh.h"
+#include "renderer/triangleRenderer.h"
 
 #define PI 3.14159265
 
@@ -92,7 +92,7 @@ void sphereRenderer::buildMesh(int stacks, int points)
 
     stack_indices.resize(indx);
 
-    mesh = triangleMesh(stack_vertices, stack_indices);
+    mesh = triangleRenderer(stack_vertices, stack_indices);
 }
 
 void sphereRenderer::draw()
