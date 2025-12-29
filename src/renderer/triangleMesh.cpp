@@ -27,10 +27,7 @@ triangleMesh::triangleMesh(std::vector<Vertex> mesh_vertices, std::vector<GLuint
     glBindVertexArray(0);
 }
 
-triangleMesh::triangleMesh(triangleMesh&& other) noexcept
-    : VAO(other.VAO), VBO(other.VBO), EBO(other.EBO),
-    vertices(std::move(other.vertices)),
-    indices(std::move(other.indices))
+triangleMesh::triangleMesh(triangleMesh&& other) noexcept : VAO(other.VAO), VBO(other.VBO), EBO(other.EBO), vertices(std::move(other.vertices)), indices(std::move(other.indices))
 {
     other.VAO = 0;
     other.VBO = 0;

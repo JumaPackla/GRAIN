@@ -6,11 +6,11 @@
 
 #include <vector>
 
-class cameraClass
+class Camera
 {
 public:
-	cameraClass();
-	~cameraClass();
+	Camera();
+	~Camera();
 
 	void move(const glm::vec3& delta);
 	void rotate(float yaw, float pitch);

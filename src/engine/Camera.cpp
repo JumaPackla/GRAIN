@@ -1,17 +1,17 @@
-#include "engine/cameraClass.h"
+#include "engine/Camera.h"
 
-cameraClass::cameraClass()
+Camera::Camera()
 {
 	position = glm::vec3(0.0f, 0.0f, 0.0f);
 	rotationMatrix = glm::mat3(1.0f);
 	mouseSensitivity = 0.1f;
 }
 
-cameraClass::~cameraClass()
+Camera::~Camera()
 {
 }
 
-void cameraClass::move(const glm::vec3& delta)
+void Camera::move(const glm::vec3& delta)
 {
 	position += rotationMatrix * delta;
 
@@ -29,7 +29,7 @@ void cameraClass::move(const glm::vec3& delta)
 	position.y += delta.y;
 }
 
-void cameraClass::rotate(float yaw, float pitch)
+void Camera::rotate(float yaw, float pitch)
 {
 	glm::mat4 yawMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(yaw * mouseSensitivity), glm::vec3(0, 1, 0));
 	glm::mat4 pitchMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(pitch * mouseSensitivity), glm::vec3(1, 0, 0));
@@ -37,7 +37,7 @@ void cameraClass::rotate(float yaw, float pitch)
 	rotationMatrix = glm::mat3(yawMatrix * pitchMatrix) * rotationMatrix;
 }
 
-glm::mat4 cameraClass::getViewMatrix() const
+glm::mat4 Camera::getViewMatrix() const
 {
 	return glm::lookAt(position, position + rotationMatrix * glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
 }
