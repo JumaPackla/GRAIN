@@ -23,7 +23,8 @@ public:
 
 private:
     void initGLFW();
-    void initShaders();
+    void initRenderShaders();
+    void initComputeShaders();
     void initScene();
     void processInput();
     void update(float dt);
@@ -39,6 +40,7 @@ private:
 
     std::unique_ptr<Shader> triangle_shader;
     std::unique_ptr<Shader> dust_shader;
+    std::unique_ptr<Shader> dust_compute_shader;
 
     std::unique_ptr<triangleRenderer> triangleMesh1;
     std::unique_ptr<sphereRenderer> sphereMesh1;

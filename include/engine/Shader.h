@@ -7,9 +7,10 @@ class Shader
 {
 public:
 	Shader(std::string vertex_shader_location, std::string fragment_shader_location);
+	Shader(std::string computePath);
 	~Shader();
 
-	int bind();
+	void bind();
 	GLuint getProgram() const { return shader_program; }
 
 private:

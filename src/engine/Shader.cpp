@@ -54,13 +54,37 @@ Shader::Shader(std::string vertex_shader_location, std::string fragment_shader_l
 	}
 }
 
+Shader::Shader(std::string computePath)
+{
+	GLuint computeShader = glCreateShader(GL_COMPUTE_SHADER);
+	std::string code = readFile(computePath);
+	const char* src = code.c_str();
+
+	glShaderSource(computeShader, 1, &src, nullptr);
+	glCompileShader(computeShader);
+
+	shader_program = glCreateProgram();
+	glAttachShader(shader_program, computeShader);
+	glLinkProgram(shader_program);
+
+	glDeleteShader(computeShader);
+
+	int success;
+	glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		char log[512];
+		glGetProgramInfoLog(shader_program, 512, nullptr, log);
+		std::cerr << "Compute shader link error:\n" << log << std::endl;
+	}
+}
+
 Shader::~Shader()
 {
 	glDeleteProgram(shader_program);
 }
 
-int Shader::bind()
+void Shader::bind()
 {
 	glUseProgram(shader_program);
-	return 0;
 }

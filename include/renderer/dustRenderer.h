@@ -1,18 +1,15 @@
 #pragma once
 
 #include <vector>
-#include <glm/glm.hpp>
 #include <glad/glad.h>
 
 #include "particles/dustBody.h"
 
-struct dustBody;
-
 class dustRenderer
 {
 public:
-    dustRenderer(const std::vector<dustBody>& bodies);
-    
+    dustRenderer(const std::vector<dustBody>& initialBodies);
+
     dustRenderer(const dustRenderer&) = delete;
     dustRenderer& operator=(const dustRenderer&) = delete;
 
@@ -23,9 +20,12 @@ public:
 
     void draw();
 
+    //GLuint getSSBO() const { return SSBO; }
+    size_t getDustCount() const { return dustCount; }
+
 private:
     GLuint VAO = 0;
-    GLuint VBO = 0;
+    GLuint SSBO = 0;
 
-    std::vector<dustBody> dustBodies;
+    size_t dustCount = 0;
 };
