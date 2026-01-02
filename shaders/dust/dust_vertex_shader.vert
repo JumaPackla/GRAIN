@@ -22,6 +22,6 @@ void main()
     vec3 pos = particles[gl_VertexID].position.xyz;
     gl_Position = u_ViewProjection * vec4(pos, 1.0);
 
-    gl_PointSize = 1.0;
-    //gl_PointSize = particles[gl_VertexID].radius * 50.0;
+    //gl_PointSize = 1.0;
+    gl_PointSize = particles[gl_VertexID].radius * 5.0;
 }

@@ -50,7 +50,7 @@ dustRenderer& dustRenderer::operator=(dustRenderer&& other) noexcept
 void dustRenderer::draw()
 {
     glBindVertexArray(VAO);
-    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_POINT_SPRITE);
     glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(dustCount));
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_POINT_SPRITE);
 }

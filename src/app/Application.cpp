@@ -30,11 +30,15 @@ void Application::initGLFW()
         throw std::runtime_error("Failed to initialize GLFW");
     }
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+
     window = glfwCreateWindow(800, 600, "GRAIN", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         throw std::runtime_error("Failed to create GLFW window");
     }
+
 
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -83,30 +87,50 @@ void Application::initScene()
     sphereBody sphereBody1;
     sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
-    //dustBody dustBody1;
-    //dustPoints1 = std::make_unique<dustRenderer>(std::vector<dustBody>{dustBody1});
+    //std::vector<dustBody> dustParticles;
+    //dustParticles.reserve(1000);
+
+    //int n = 10;
+    //float spacing = 0.2f;
+    //for (size_t x = 0; x < n; ++x) {
+    //    for (size_t y = 0; y < n; ++y) {
+    //        for (size_t z = 0; z < n; ++z) {
+    //            dustBody d;
+    //            d.position = glm::vec4(
+    //                (x - n / 2) * spacing,
+    //                (y - n / 2) * spacing,
+    //                -(z * spacing + 2.0f),
+    //                1.0f
+    //            );
+    //            d.velocity = glm::vec4(0.0f);
+    //            d.radius = 0.1f;
+    //            d.mass = 0.1f;
+    //            dustParticles.push_back(d);
+    //        }
+    //    }
+    //}
+
+    //dustPoints1 = std::make_unique<dustRenderer>(dustParticles);
 
     std::vector<dustBody> dustParticles;
-    dustParticles.reserve(1000);
+    int number_of_particles = 1000;
+    dustParticles.reserve(number_of_particles);
 
-    int n = 10;
-    float spacing = 0.2f;
-    for (size_t x = 0; x < n; ++x) {
-        for (size_t y = 0; y < n; ++y) {
-            for (size_t z = 0; z < n; ++z) {
-                dustBody d;
-                d.position = glm::vec4(
-                    (x - n / 2) * spacing,
-                    (y - n / 2) * spacing,
-                    -(z * spacing + 2.0f),
-                    1.0f
-                );
-                d.velocity = glm::vec4(0.0f);
-                d.radius = 0.1f;
-                d.mass = 0.1f;
-                dustParticles.push_back(d);
-            }
-        }
+    float max_x = 5.0f;
+    float max_y = 5.0f;
+    float max_z = 5.0f;
+    for (int i = 0; i < number_of_particles; i++) {
+        dustBody dustParticle;
+        dustParticle.position = glm::vec4(
+            (static_cast<float>(rand()) / RAND_MAX * max_x),
+            (static_cast<float>(rand()) / RAND_MAX * max_y),
+            (static_cast<float>(rand()) / RAND_MAX * max_z),
+            1.0f
+        );
+        dustParticle.velocity = glm::vec4(0.0f);
+        dustParticle.radius = 0.1f;
+        dustParticle.mass = 0.1f;
+        dustParticles.push_back(dustParticle);
     }
 
     dustPoints1 = std::make_unique<dustRenderer>(dustParticles);
