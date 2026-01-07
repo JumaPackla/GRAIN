@@ -9,9 +9,15 @@
 #include "particles/sphereBody.h"
 #include "particles/dustBody.h"
 
+#include "devTools/devTools.h"
+#ifdef DEV_DISPLAY
+#endif
+
 Application::Application()
 {
     initGLFW();
+    initGLAD();
+    initWindowGUI();
     initRenderShaders();
     initComputeShaders();
     initScene();
@@ -44,7 +50,10 @@ void Application::initGLFW()
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+}
 
+void Application::initGLAD()
+{
     if (!gladLoadGL()) {
         throw std::runtime_error("Failed to initialize GLAD");
     }
@@ -52,6 +61,15 @@ void Application::initGLFW()
     glViewport(0, 0, 800, 600);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_PROGRAM_POINT_SIZE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void Application::initWindowGUI()
+{
+    #ifdef DEV_DISPLAY
+        devTools::Manager::Init(window);
+    #endif
 }
 
 void Application::framebufferSizeCallback(GLFWwindow* window, int width, int height) 
@@ -89,7 +107,7 @@ void Application::initScene()
     sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
     std::vector<dustBody> dustParticles;
-    int number_of_particles = 100000;
+    int number_of_particles = 1000;
     dustParticles.reserve(number_of_particles);
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
@@ -128,14 +146,30 @@ void Application::initScene()
 
 void Application::run() 
 {
+
     while (!glfwWindowShouldClose(window)) {
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+#ifdef DEV_DISPLAY
+        devTools::Manager::BeginFrame();
+#endif
+
         processInput();
         update();
+        updateUI();
         render();
+
+#ifdef DEV_DISPLAY
+        devTools::Manager::EndFrame();
+#endif
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+#ifdef DEV_DISPLAY
+    devTools::Manager::Shutdown();
+#endif
 }
 
 void Application::processInput()
@@ -189,6 +223,17 @@ void Application::update()
     }
 }
 
+void Application::updateUI()
+{
+#ifdef DEV_DISPLAY
+    devTools::Manager::SetDustCount(static_cast<GLuint>(dustPoints1->getDustCount()));
+#endif
+
+#ifdef DEV_DISPLAY
+    devTools::Manager::SetTimeSpeed(Time::getSpeed());
+#endif
+}
+
 void Application::render()
 {
     int width, height;
@@ -196,9 +241,6 @@ void Application::render()
     float aspect = float(width) / height;
 
     glm::mat4 vp = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f) * camera.getViewMatrix();
-
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (triangle_shader and (triangleMesh1 or sphereMesh1))
     {

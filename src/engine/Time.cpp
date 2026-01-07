@@ -16,3 +16,7 @@ void Time::update(double currentTime) {
 float Time::deltaTime() {
     return dt;
 }
+
+float Time::getSpeed() {
+    return Time::speed;
+}

@@ -14,6 +14,16 @@ target_include_directories(glad PUBLIC external/glad/include)
 # OpenGL
 find_package(OpenGL REQUIRED)
 
+# ImGui
+file(GLOB IMGUI_SRC
+    external/imgui/*.cpp
+    external/imgui/backends/imgui_impl_glfw.cpp
+    external/imgui/backends/imgui_impl_opengl3.cpp
+)
+add_library(imgui_lib STATIC ${IMGUI_SRC})
+target_include_directories(imgui_lib PUBLIC external/imgui)
+target_link_libraries(imgui_lib PRIVATE glfw OpenGL::GL)
+
 # Renderer
 file(GLOB_RECURSE RENDERER_SRC CONFIGURE_DEPENDS src/renderer/*.cpp)
 add_library(renderer ${RENDERER_SRC})
@@ -25,11 +35,6 @@ file(GLOB_RECURSE ENGINE_SRC CONFIGURE_DEPENDS src/engine/*.cpp)
 add_library(engine ${ENGINE_SRC})
 target_include_directories(engine PUBLIC include external/glm)
 target_link_libraries(engine PUBLIC glad)
-
-# Shaders for Dev
-target_compile_definitions(engine
-    PRIVATE SHADER_SOURCE_DIR="${CMAKE_SOURCE_DIR}/shaders"
-)
 
 # Simulation
 file(GLOB_RECURSE SIMULATION_SRC CONFIGURE_DEPENDS src/simulation/*.cpp)
@@ -74,6 +79,22 @@ target_link_libraries(app
         glad
         glfw
         OpenGL::GL
+        $<$<CONFIG:Debug>:devtools>
+)
+
+# DevTools
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    file(GLOB_RECURSE DEVTOOLS_SRC CONFIGURE_DEPENDS src/DevTools/*.cpp)
+    add_library(devtools ${DEVTOOLS_SRC})
+    target_include_directories(devtools PUBLIC include external/glm external/imgui)
+    target_link_libraries(devtools PRIVATE imgui_lib glfw OpenGL::GL)
+    target_compile_definitions(devtools PRIVATE DEV_DISPLAY)
+    target_compile_definitions(app PRIVATE DEV_DISPLAY)
+endif()
+
+# Shaders for Dev
+target_compile_definitions(engine
+    PRIVATE SHADER_SOURCE_DIR="${CMAKE_SOURCE_DIR}/shaders"
 )
 
 # Shaders for Build

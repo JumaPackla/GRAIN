@@ -6,7 +6,7 @@ public:
     static float control(double currentTime);
     static void update(double currentTime);
     static float deltaTime();
-
+    static float getSpeed();
 private:
     static double lastTime;
     static float dt;

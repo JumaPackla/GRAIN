@@ -23,11 +23,14 @@ public:
 
 private:
     void initGLFW();
+    void initGLAD();
+    void initWindowGUI();
     void initRenderShaders();
     void initComputeShaders();
     void initScene();
     void processInput();
     void update();
+    void updateUI();
     void render();
 
     static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
