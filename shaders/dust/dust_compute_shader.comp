@@ -27,5 +27,5 @@ void main()
 
     particles[id].position.xyz += particles[id].velocity.xyz * u_DeltaTime;
 
-    particles[id].velocity.xyz *= 0.999;
+    particles[id].velocity.xyz *= 1.0;
 }

@@ -8,7 +8,7 @@ void cameraController::update(Camera& camera, const inputState& input, float del
 {
     glm::vec3 moveDir(0.0f);
 
-    moveDir.z -= input.moveForward;
+    moveDir.z += input.moveForward;
     moveDir.x += input.moveRight;
     moveDir.y += input.moveUp;
 

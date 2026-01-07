@@ -9,16 +9,24 @@
 class Camera
 {
 public:
-	Camera();
-	~Camera();
+    Camera();
+    ~Camera();
 
-	void move(const glm::vec3& delta);
-	void rotate(float yaw, float pitch);
-	glm::mat4 getViewMatrix() const;
-	glm::vec3 getPosition() const { return position; }
+    void move(const glm::vec3& delta);
+    void rotate(float deltaYaw, float deltaPitch);
+
+    glm::mat4 getViewMatrix() const;
 
 private:
-	glm::vec3 position;
-	glm::mat3 rotationMatrix;
-	float mouseSensitivity;
+    void updateVectors();
+
+    glm::vec3 position;
+    glm::vec3 forward;
+    glm::vec3 right;
+    glm::vec3 up;
+
+    float yaw;
+    float pitch;
+
+    float mouseSensitivity;
 };

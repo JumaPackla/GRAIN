@@ -27,7 +27,7 @@ private:
     void initComputeShaders();
     void initScene();
     void processInput();
-    void update(float dt);
+    void update();
     void render();
 
     static void framebufferSizeCallback(GLFWwindow* window, int width, int height);

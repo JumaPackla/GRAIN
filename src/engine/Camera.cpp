@@ -2,42 +2,46 @@
 
 Camera::Camera()
 {
-	position = glm::vec3(0.0f, 0.0f, 0.0f);
-	rotationMatrix = glm::mat3(1.0f);
-	mouseSensitivity = 0.1f;
+    position = glm::vec3(0.0f, 0.0f, 0.0f);
+    yaw = -90.0f;
+    pitch = 0.0f;
+    mouseSensitivity = 0.1f;
+    updateVectors();
 }
 
-Camera::~Camera()
-{
-}
+Camera::~Camera() {}
 
 void Camera::move(const glm::vec3& delta)
 {
-	position += rotationMatrix * delta;
-
-	glm::vec3 forward(rotationMatrix[2]);
-	glm::vec3 right(rotationMatrix[0]);
-
-	forward.y = 0.0f;
-	right.y = 0.0f;
-
-	forward = glm::normalize(forward);
-	right = glm::normalize(right);
-
-	position += right * delta.x;
-	position += forward * delta.z;
-	position.y += delta.y;
+    position += right * delta.x;
+    position += up * delta.y;
+    position += forward * delta.z;
 }
 
-void Camera::rotate(float yaw, float pitch)
+void Camera::rotate(float deltaYaw, float deltaPitch)
 {
-	glm::mat4 yawMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(yaw * mouseSensitivity), glm::vec3(0, 1, 0));
-	glm::mat4 pitchMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(pitch * mouseSensitivity), glm::vec3(1, 0, 0));
+    yaw += deltaYaw * mouseSensitivity;
+    pitch += deltaPitch * mouseSensitivity;
 
-	rotationMatrix = glm::mat3(yawMatrix * pitchMatrix) * rotationMatrix;
+    if (pitch > 89.0f) pitch = 89.0f;
+    if (pitch < -89.0f) pitch = -89.0f;
+
+    updateVectors();
+}
+
+void Camera::updateVectors()
+{
+    glm::vec3 f;
+    f.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    f.y = sin(glm::radians(pitch));
+    f.z = -sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    forward = glm::normalize(f);
+
+    right = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
+    up = glm::normalize(glm::cross(right, forward));
 }
 
 glm::mat4 Camera::getViewMatrix() const
 {
-	return glm::lookAt(position, position + rotationMatrix * glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
+    return glm::lookAt(position, position + forward, up);
 }

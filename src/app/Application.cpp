@@ -94,12 +94,15 @@ void Application::initScene()
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-    float max_x = 5.0f;
-    float min_x = -5.0f;
-    float max_y = 5.0f;
-    float min_y = -5.0f;
-    float max_z = 5.0f;
-    float min_z = -5.0f;
+    float max_x = 1.0f;
+    float min_x = -1.0f;
+    float max_y = 1.0f;
+    float min_y = -1.0f;
+    float max_z = 1.0f;
+    float min_z = -1.0f;
+
+    double min_vel = 0;
+    double max_vel = 1;
 
     for (int i = 0; i < number_of_particles; i++) {
         dustBody dustParticle;
@@ -107,9 +110,14 @@ void Application::initScene()
             (min_x + static_cast<float>(rand()) / RAND_MAX * (max_x - min_x)),
             (min_y + static_cast<float>(rand()) / RAND_MAX * (max_y - min_y)),
             (min_z + static_cast<float>(rand()) / RAND_MAX * (max_z - min_z)),
-            1.0f
+            0.0f
         );
-        dustParticle.velocity = glm::vec4(0.0f);
+        //dustParticle.velocity = glm::vec4(
+        //    min_vel + static_cast<double>(rand()) / RAND_MAX * (max_vel - min_vel),
+        //    min_vel + static_cast<double>(rand()) / RAND_MAX * (max_vel - min_vel),
+        //    min_vel + static_cast<double>(rand()) / RAND_MAX * (max_vel - min_vel),
+        //    0.0f);
+        dustParticle.velocity = glm::vec4(0.1f, 0.1f, 0.1f, 0.0f);
         dustParticle.radius = 0.1f;
         dustParticle.mass = 0.1f;
         dustParticles.push_back(dustParticle);
@@ -121,11 +129,8 @@ void Application::initScene()
 void Application::run() 
 {
     while (!glfwWindowShouldClose(window)) {
-        Time::update(glfwGetTime());
-        float dt = Time::deltaTime();
-
         processInput();
-        update(dt);
+        update();
         render();
 
         glfwSwapBuffers(window);
@@ -163,15 +168,18 @@ void Application::processInput()
     lastMouseY = mouseY;
 }
 
-void Application::update(float dt) 
+void Application::update() 
 {
+    Time::update(glfwGetTime());
+    float dt = Time::deltaTime();
+
     cameraController.update(camera, input, dt);
 
     if (dust_compute_shader and (dustPoints1))
     {
         dust_compute_shader->bind();
 
-        glUniform1f(glGetUniformLocation(dust_compute_shader->getProgram(), "u_DeltaTime"), dt);
+        glUniform1f(glGetUniformLocation(dust_compute_shader->getProgram(), "u_DeltaTime"), Time::control(dt));
 
         GLuint count = static_cast<GLuint>(dustPoints1->getDustCount());
         GLuint groups = (count + 255) / 256;
