@@ -1,19 +1,25 @@
 #pragma once
-
 #include <string>
 #include <glad/glad.h>
+#include <iostream>
 
 class Shader
 {
 public:
-	Shader(std::string vertex_shader_location, std::string fragment_shader_location);
-	Shader(std::string computePath);
-	~Shader();
+    Shader(const std::string& vertexPath, const std::string& fragmentPath);
+    Shader(const std::string& computePath);
+    ~Shader();
 
-	void bind();
-	GLuint getProgram() const { return shader_program; }
+    void bind() const;
+
+    static std::string getShaderPath(const std::string& relativePath);
+    static std::string readFile(const std::string& filePath);
+
+    GLuint getProgram() const { return shader_program; }
+
 
 private:
-	GLuint shader_program;
+    GLuint shader_program = 0;
 
+    void compileAndLink(GLuint vertexShader, GLuint fragmentShader);
 };

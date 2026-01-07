@@ -26,6 +26,11 @@ add_library(engine ${ENGINE_SRC})
 target_include_directories(engine PUBLIC include external/glm)
 target_link_libraries(engine PUBLIC glad)
 
+# Shaders for Dev
+target_compile_definitions(engine
+    PRIVATE SHADER_SOURCE_DIR="${CMAKE_SOURCE_DIR}/shaders"
+)
+
 # Simulation
 file(GLOB_RECURSE SIMULATION_SRC CONFIGURE_DEPENDS src/simulation/*.cpp)
 add_library(simulation ${SIMULATION_SRC})
@@ -71,7 +76,7 @@ target_link_libraries(app
         OpenGL::GL
 )
 
-# Shaders
+# Shaders for Build
 add_custom_command(
     TARGET app POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

@@ -32,13 +32,14 @@ void Application::initGLFW()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     window = glfwCreateWindow(800, 600, "GRAIN", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         throw std::runtime_error("Failed to create GLFW window");
     }
-
 
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -60,13 +61,13 @@ void Application::framebufferSizeCallback(GLFWwindow* window, int width, int hei
 
 void Application::initRenderShaders()
 {
-    triangle_shader = std::make_unique<Shader>("shaders/mesh/triangle_vertex_shader.vert", "shaders/mesh/triangle_fragment_shader.frag");
-    dust_shader = std::make_unique<Shader>("shaders/dust/dust_vertex_shader.vert", "shaders/dust/dust_fragment_shader.frag");
+    triangle_shader = std::make_unique<Shader>("mesh/triangle_vertex_shader.vert", "mesh/triangle_fragment_shader.frag");
+    dust_shader = std::make_unique<Shader>("dust/dust_vertex_shader.vert", "dust/dust_fragment_shader.frag");
 }
 
 void Application::initComputeShaders()
 {
-    dust_compute_shader = std::make_unique<Shader>("shaders/dust/dust_compute_shader.comp");
+    dust_compute_shader = std::make_unique<Shader>("dust/dust_compute_shader.comp");
 }
 
 void Application::initScene() 
@@ -87,44 +88,25 @@ void Application::initScene()
     sphereBody sphereBody1;
     sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
-    //std::vector<dustBody> dustParticles;
-    //dustParticles.reserve(1000);
-
-    //int n = 10;
-    //float spacing = 0.2f;
-    //for (size_t x = 0; x < n; ++x) {
-    //    for (size_t y = 0; y < n; ++y) {
-    //        for (size_t z = 0; z < n; ++z) {
-    //            dustBody d;
-    //            d.position = glm::vec4(
-    //                (x - n / 2) * spacing,
-    //                (y - n / 2) * spacing,
-    //                -(z * spacing + 2.0f),
-    //                1.0f
-    //            );
-    //            d.velocity = glm::vec4(0.0f);
-    //            d.radius = 0.1f;
-    //            d.mass = 0.1f;
-    //            dustParticles.push_back(d);
-    //        }
-    //    }
-    //}
-
-    //dustPoints1 = std::make_unique<dustRenderer>(dustParticles);
-
     std::vector<dustBody> dustParticles;
-    int number_of_particles = 1000;
+    int number_of_particles = 100000;
     dustParticles.reserve(number_of_particles);
 
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
     float max_x = 5.0f;
+    float min_x = -5.0f;
     float max_y = 5.0f;
+    float min_y = -5.0f;
     float max_z = 5.0f;
+    float min_z = -5.0f;
+
     for (int i = 0; i < number_of_particles; i++) {
         dustBody dustParticle;
         dustParticle.position = glm::vec4(
-            (static_cast<float>(rand()) / RAND_MAX * max_x),
-            (static_cast<float>(rand()) / RAND_MAX * max_y),
-            (static_cast<float>(rand()) / RAND_MAX * max_z),
+            (min_x + static_cast<float>(rand()) / RAND_MAX * (max_x - min_x)),
+            (min_y + static_cast<float>(rand()) / RAND_MAX * (max_y - min_y)),
+            (min_z + static_cast<float>(rand()) / RAND_MAX * (max_z - min_z)),
             1.0f
         );
         dustParticle.velocity = glm::vec4(0.0f);
@@ -164,7 +146,6 @@ void Application::processInput()
     input.moveUp =
         float(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) -
         float(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
-
 
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -208,7 +189,7 @@ void Application::render()
 
     glm::mat4 vp = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f) * camera.getViewMatrix();
 
-    glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (triangle_shader and (triangleMesh1 or sphereMesh1))
