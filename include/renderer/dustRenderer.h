@@ -28,4 +28,5 @@ private:
     GLuint SSBO = 0;
 
     size_t dustCount = 0;
+    std::vector<dustBody> dustBodies;
 };
