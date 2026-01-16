@@ -42,12 +42,6 @@ add_library(simulation ${SIMULATION_SRC})
 target_include_directories(simulation PUBLIC include external/glm)
 target_link_libraries(simulation PUBLIC engine)
 
-# Forces
-file(GLOB_RECURSE FORCES_SRC CONFIGURE_DEPENDS src/forces/*.cpp)
-add_library(forces ${FORCES_SRC})
-target_include_directories(forces PUBLIC include external/glm)
-target_link_libraries(forces PUBLIC engine)
-
 # Particles
 file(GLOB_RECURSE PARTICLES_SRC CONFIGURE_DEPENDS src/particles/*.cpp)
 add_library(particles ${PARTICLES_SRC})
@@ -74,7 +68,6 @@ target_link_libraries(app
         engine
         renderer
         simulation
-        forces
         particles
         glad
         glfw

@@ -34,6 +34,7 @@ private:
     void render();
 
     static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
     GLFWwindow* window = nullptr;
 

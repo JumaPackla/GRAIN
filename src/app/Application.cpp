@@ -49,7 +49,11 @@ void Application::initGLFW()
 
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    glfwSetWindowUserPointer(window, this);
+
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+    glfwSetScrollCallback(window, scrollCallback);
 }
 
 void Application::initGLAD()
@@ -72,20 +76,15 @@ void Application::initWindowGUI()
     #endif
 }
 
-void Application::framebufferSizeCallback(GLFWwindow* window, int width, int height) 
-{
-    glViewport(0, 0, width, height);
-}
-
 void Application::initRenderShaders()
 {
-    triangle_shader = std::make_unique<Shader>("mesh/triangle_vertex_shader.vert", "mesh/triangle_fragment_shader.frag");
-    dust_shader = std::make_unique<Shader>("dust/dust_vertex_shader.vert", "dust/dust_fragment_shader.frag");
+    triangle_shader = std::make_unique<Shader>("mesh/triangle_render.vert", "mesh/triangle_render.frag");
+    dust_shader = std::make_unique<Shader>("dust/render/dust_render.vert", "dust/render/dust_render.frag");
 }
 
 void Application::initComputeShaders()
 {
-    dust_compute_shader = std::make_unique<Shader>("dust/dust_compute_shader.comp");
+    dust_compute_shader = std::make_unique<Shader>("dust/passes/dust_apply_forces.comp");
 }
 
 void Application::initScene() 
@@ -107,20 +106,20 @@ void Application::initScene()
     sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
     std::vector<dustBody> dustParticles;
-    int number_of_particles = 1000;
+    int number_of_particles = 100000;
     dustParticles.reserve(number_of_particles);
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-    float max_x = 1.0f;
-    float min_x = -1.0f;
+    float max_x = 10.0f;
+    float min_x = -10.0f;
     float max_y = 1.0f;
     float min_y = -1.0f;
-    float max_z = 1.0f;
-    float min_z = -1.0f;
+    float max_z = 10.0f;
+    float min_z = -10.0f;
 
-    double min_vel = 0;
-    double max_vel = 1;
+    //double min_vel = 0;
+    //double max_vel = 1;
 
     for (int i = 0; i < number_of_particles; i++) {
         dustBody dustParticle;
@@ -135,13 +134,27 @@ void Application::initScene()
         //    min_vel + static_cast<double>(rand()) / RAND_MAX * (max_vel - min_vel),
         //    min_vel + static_cast<double>(rand()) / RAND_MAX * (max_vel - min_vel),
         //    0.0f);
-        dustParticle.velocity = glm::vec4(0.1f, 0.1f, 0.1f, 0.0f);
+        dustParticle.velocity = glm::vec4(0.0f);
         dustParticle.radius = 0.1f;
         dustParticle.mass = 0.1f;
         dustParticles.push_back(dustParticle);
     }
 
     dustPoints1 = std::make_unique<dustRenderer>(dustParticles);
+}
+
+void Application::framebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void Application::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    if (!app) return;
+
+    app->input.scrollX += static_cast<float>(xoffset);
+    app->input.scrollY += static_cast<float>(yoffset);
 }
 
 void Application::run() 
@@ -151,25 +164,26 @@ void Application::run()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#ifdef DEV_DISPLAY
-        devTools::Manager::BeginFrame();
-#endif
+        #ifdef DEV_DISPLAY
+            devTools::Manager::BeginFrame();
+        #endif
 
         processInput();
         update();
         updateUI();
         render();
 
-#ifdef DEV_DISPLAY
-        devTools::Manager::EndFrame();
-#endif
+        #ifdef DEV_DISPLAY
+                devTools::Manager::EndFrame();
+        #endif
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-#ifdef DEV_DISPLAY
-    devTools::Manager::Shutdown();
-#endif
+
+    #ifdef DEV_DISPLAY
+        devTools::Manager::Shutdown();
+    #endif
 }
 
 void Application::processInput()
@@ -200,6 +214,13 @@ void Application::processInput()
 
     lastMouseX = mouseX;
     lastMouseY = mouseY;
+
+    if (input.scrollY != 0.0f) {
+        camera.scroll(input.scrollY);
+    }
+
+    input.scrollX = 0.0f;
+    input.scrollY = 0.0f;
 }
 
 void Application::update() 
@@ -225,13 +246,13 @@ void Application::update()
 
 void Application::updateUI()
 {
-#ifdef DEV_DISPLAY
-    devTools::Manager::SetDustCount(static_cast<GLuint>(dustPoints1->getDustCount()));
-#endif
+    #ifdef DEV_DISPLAY
+        devTools::Manager::SetDustCount(static_cast<GLuint>(dustPoints1->getDustCount()));
+    #endif
 
-#ifdef DEV_DISPLAY
-    devTools::Manager::SetTimeSpeed(Time::getSpeed());
-#endif
+    #ifdef DEV_DISPLAY
+        devTools::Manager::SetTimeSpeed(Time::getSpeed());
+    #endif
 }
 
 void Application::render()
@@ -240,7 +261,7 @@ void Application::render()
     glfwGetFramebufferSize(window, &width, &height);
     float aspect = float(width) / height;
 
-    glm::mat4 vp = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f) * camera.getViewMatrix();
+    glm::mat4 vp = camera.getProjectionMatrix(float(width) / height);
 
     if (triangle_shader and (triangleMesh1 or sphereMesh1))
     {

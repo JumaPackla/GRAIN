@@ -14,7 +14,9 @@ public:
 
     void move(const glm::vec3& delta);
     void rotate(float deltaYaw, float deltaPitch);
+    void scroll(float yoffset);
 
+    glm::mat4 getProjectionMatrix(float aspectRatio) const;
     glm::mat4 getViewMatrix() const;
 
 private:
@@ -27,6 +29,8 @@ private:
 
     float yaw;
     float pitch;
+
+    float zoom;
 
     float mouseSensitivity;
 };

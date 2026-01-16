@@ -1,4 +1,6 @@
 #include "engine/Camera.h"
+#include <algorithm>
+#include <iostream>
 
 Camera::Camera()
 {
@@ -6,6 +8,7 @@ Camera::Camera()
     yaw = -90.0f;
     pitch = 0.0f;
     mouseSensitivity = 0.1f;
+    zoom = 60.0f;
     updateVectors();
 }
 
@@ -39,6 +42,16 @@ void Camera::updateVectors()
 
     right = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
     up = glm::normalize(glm::cross(right, forward));
+}
+
+void Camera::scroll(float yoffset)
+{
+    zoom -= yoffset;
+    zoom = std::clamp(zoom, 1.0f, 60.0f);
+}
+
+glm::mat4 Camera::getProjectionMatrix(float aspectRatio) const {
+    return glm::perspective(glm::radians(zoom), aspectRatio, 0.1f, 100.0f) * getViewMatrix();
 }
 
 glm::mat4 Camera::getViewMatrix() const

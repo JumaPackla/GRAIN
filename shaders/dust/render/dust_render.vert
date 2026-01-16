@@ -31,7 +31,7 @@ void main()
 
         float scale = 500.0;
 
-        gl_PointSize = (radius * scale) / depth;
+        gl_PointSize = ((radius * scale) / depth) * 50.0f;
         gl_PointSize = clamp(gl_PointSize, 1.0, 128.0);
     }
 
