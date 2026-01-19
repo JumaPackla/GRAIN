@@ -19,6 +19,8 @@ public:
     glm::mat4 getProjectionMatrix(float aspectRatio) const;
     glm::mat4 getViewMatrix() const;
 
+    float getZoom() { return zoom; };
+
 private:
     void updateVectors();
 

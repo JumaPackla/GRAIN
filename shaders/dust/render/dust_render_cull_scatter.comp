@@ -1,0 +1,51 @@
+#version 450
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 1) buffer RenderBuffer {
+    vec4 renderPos[];
+};
+
+layout(std430, binding = 2) buffer VisibleBuffer {
+    vec4 visiblePos[];
+};
+
+layout(std430, binding = 4) buffer TempCounts {
+    uint groupStarts[];
+};
+
+uniform mat4 u_ViewProjection;
+
+shared uint localCounter;
+
+void main()
+{
+    uint gid   = gl_GlobalInvocationID.x;
+    uint lid   = gl_LocalInvocationID.x;
+    uint group = gl_WorkGroupID.x;
+
+    if (lid == 0)
+        localCounter = 0;
+    barrier();
+
+    bool visible = false;
+    vec4 pos;
+
+    if (gid < renderPos.length())
+    {
+        pos  = renderPos[gid];
+        vec4 clip = u_ViewProjection * vec4(pos.xyz, 1.0);
+        visible = all(lessThanEqual(abs(clip.xyz), vec3(clip.w)));
+    }
+
+    uint localIndex = 0;
+    if (visible)
+        localIndex = atomicAdd(localCounter, 1);
+
+    barrier();
+
+    if (visible)
+    {
+        uint globalIndex = groupStarts[group] + localIndex;
+        visiblePos[globalIndex] = pos;
+    }
+}

@@ -42,9 +42,13 @@ private:
     cameraController cameraController;
     inputState input;
 
-    std::unique_ptr<Shader> triangle_shader;
-    std::unique_ptr<Shader> dust_shader;
-    std::unique_ptr<Shader> dust_compute_shader;
+    std::unique_ptr<Shader> triangle_render_shader;
+    std::unique_ptr<Shader> dust_render_shader;
+    std::unique_ptr<Shader> dust_apply_forces_shader;
+    std::unique_ptr<Shader> dust_upload_shader;
+    std::unique_ptr<Shader> dust_cull_count_shader;
+    std::unique_ptr<Shader> dust_cull_scan_shader;
+    std::unique_ptr<Shader> dust_cull_scatter_shader;
 
     std::unique_ptr<triangleRenderer> triangleMesh1;
     std::unique_ptr<sphereRenderer> sphereMesh1;
