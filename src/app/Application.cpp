@@ -80,17 +80,19 @@ void Application::initRenderShaders()
 {
     triangle_render_shader = std::make_unique<Shader>("mesh/triangle_render.vert", "mesh/triangle_render.frag");
     dust_render_shader = std::make_unique<Shader>("dust/render/dust_render.vert", "dust/render/dust_render.frag");
+    dust_chunk_render_shader = std::make_unique<Shader>("dust/render/dust_render_chunk.vert", "dust/render/dust_render_chunk.frag");
+
+    dust_upload_shader = std::make_unique<Shader>("dust/render/dust_render_upload.comp");
+
+    dust_chunk_cull_shader = std::make_unique<Shader>("dust/render/dust_render_chunk_cull.comp");
+    dust_particle_scatter_shader = std::make_unique<Shader>("dust/render/dust_render_particle_scatter.comp");
+
+    dust_indirect_update_shader = std::make_unique<Shader>("dust/render/dust_render_indirect_update.comp");
 }
 
 void Application::initComputeShaders()
 {
     dust_apply_forces_shader = std::make_unique<Shader>("dust/passes/dust_apply_forces.comp");
-
-    dust_upload_shader = std::make_unique<Shader>("dust/render/dust_render_upload.comp");
-
-    dust_cull_count_shader = std::make_unique<Shader>("dust/render/dust_render_cull_count.comp");
-    dust_cull_scan_shader = std::make_unique<Shader>("dust/render/dust_render_cull_scan.comp");
-    dust_cull_scatter_shader = std::make_unique<Shader>("dust/render/dust_render_cull_scatter.comp");
 }
 
 void Application::initScene() 
@@ -108,21 +110,21 @@ void Application::initScene()
 
     triangleMesh1 = std::make_unique<triangleRenderer>(vertices, indices);
 
-    sphereBody sphereBody1;
-    sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
+    //sphereBody sphereBody1;
+    //sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
     std::vector<dustBody> dustParticles;
-    int number_of_particles = 3000000;
+    int number_of_particles = 1000000;
     dustParticles.reserve(number_of_particles);
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-    float max_x = 100.0f;
-    float min_x = -100.0f;
-    float max_y = 10.0f;
-    float min_y = -10.0f;
-    float max_z = 100.0f;
-    float min_z = -100.0f;
+    float max_x = 10.0f;
+    float min_x = -10.0f;
+    float max_y = 1.0f;
+    float min_y = -1.0f;
+    float max_z = 10.0f;
+    float min_z = -10.0f;
 
     //double min_vel = 0;
     //double max_vel = 1;
@@ -233,7 +235,6 @@ void Application::update()
 {
     Time::update(glfwGetTime());
     float dt = Time::deltaTime();
-
     cameraController.update(camera, input, dt);
 
     if (!dustPoints1)
@@ -242,53 +243,69 @@ void Application::update()
     const GLuint count = static_cast<GLuint>(dustPoints1->getDustCount());
     const GLuint groups = (count + 255) / 256;
 
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glm::mat4 vp = camera.getProjectionMatrix(float(width) / height);
+
+    // Step 1: Apply physics forces
     if (dust_apply_forces_shader)
     {
         dust_apply_forces_shader->bind();
-
         glUniform1f(glGetUniformLocation(dust_apply_forces_shader->getProgram(), "u_DeltaTime"), Time::control(dt));
         glDispatchCompute(groups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
 
+    // Step 2: Upload sim positions to render buffer
     if (dust_upload_shader)
     {
         dust_upload_shader->bind();
-
         glDispatchCompute(groups, 1, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
 
-    if (dust_cull_count_shader && dust_cull_scan_shader && dust_cull_scatter_shader)
+    // Step 3: Clear counters
+    GLuint zero = 0;
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, dustPoints1->getVisibleCountSSBO());
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, dustPoints1->getChunkVisibleSSBO());
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
+
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+    // Step 4: Frustum cull chunks (per-chunk, not per-particle!)
+    if (dust_chunk_cull_shader)
     {
-        GLuint zero = 0;
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, dustPoints1->getTempCountsSSBO());
-        glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
-
-        DrawArraysIndirectCommand resetCmd = {};
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, dustPoints1->getIndirectBuffer());
-        glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(resetCmd), &resetCmd);
-
-        int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
-        float aspect = float(width) / height;
-        glm::mat4 vp = camera.getProjectionMatrix(float(width) / height);
-
-        dust_cull_count_shader->bind();
-        glUniformMatrix4fv( glGetUniformLocation(dust_cull_count_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
-        glDispatchCompute(groups, 1, 1);
+        const GLuint chunkGroups = static_cast<GLuint>(dustPoints1->getChunkCount());
+        dust_chunk_cull_shader->bind();
+        glUniformMatrix4fv(glGetUniformLocation(dust_chunk_cull_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        glDispatchCompute(chunkGroups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-        dust_cull_scan_shader->bind();
-        glUniform1ui(glGetUniformLocation(dust_cull_scan_shader->getProgram(), "u_GroupCount"), groups);
-        glDispatchCompute(1, 1, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-        dust_cull_scatter_shader->bind();
-        glUniformMatrix4fv(glGetUniformLocation(dust_cull_scatter_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
-        glDispatchCompute(groups, 1, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
     }
+
+    // Step 5: Per-particle culling and LOD within visible chunks
+    if (dust_particle_scatter_shader)
+    {
+        dust_particle_scatter_shader->bind();
+        glUniformMatrix4fv(glGetUniformLocation(dust_particle_scatter_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        glUniform3fv(glGetUniformLocation(dust_particle_scatter_shader->getProgram(), "u_CameraPos"), 1, glm::value_ptr(camera.getPosition()));
+        glUniform1f(glGetUniformLocation(dust_particle_scatter_shader->getProgram(), "u_MaxDistance"), 1000.0f);
+        glUniform1f(glGetUniformLocation(dust_particle_scatter_shader->getProgram(), "u_FarDistance"), 500.0f);
+        glUniform1ui(glGetUniformLocation(dust_particle_scatter_shader->getProgram(), "u_FrameOffset"), frameOffset);
+        glDispatchCompute(groups, 1, 1);
+        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    }
+
+    // Step 6: Update indirect draw command
+    if (dust_indirect_update_shader)
+    {
+        dust_indirect_update_shader->bind();
+        glDispatchCompute(1, 1, 1);
+        glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
+    }
+
+    frameOffset = (frameOffset + 1) % 4;
 }
 
 void Application::updateUI()
@@ -310,30 +327,42 @@ void Application::render()
 {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
-    float aspect = float(width) / height;
-
     glm::mat4 vp = camera.getProjectionMatrix(float(width) / height);
 
-    if (triangle_render_shader and (triangleMesh1 or sphereMesh1))
+    if (triangle_render_shader && (triangleMesh1 || sphereMesh1))
     {
         triangle_render_shader->bind();
         glUniformMatrix4fv(glGetUniformLocation(triangle_render_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
 
-        if (triangleMesh1) {
+        if (triangleMesh1)
             triangleMesh1->draw();
-        }
-        //if (sphereMesh1) {
-        //    sphereMesh1->draw();
-        //}
+
+        if (sphereMesh1)
+            sphereMesh1->draw();
     }
 
-    if (dust_render_shader and (dustPoints1))
+    if (dust_render_shader && dustPoints1)
     {
         dust_render_shader->bind();
-        glUniformMatrix4fv(glGetUniformLocation(dust_render_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
 
-        if (dustPoints1) {
-            dustPoints1->draw();
-        }
+        glUniformMatrix4fv(glGetUniformLocation(dust_render_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        glUniform3fv(glGetUniformLocation(dust_render_shader->getProgram(), "u_CameraPos"), 1, glm::value_ptr(camera.getPosition()));
+        glUniform1f(glGetUniformLocation(dust_render_shader->getProgram(), "u_LodNear"), 300.0f);
+        glUniform1f(glGetUniformLocation(dust_render_shader->getProgram(), "u_LodFar"), 600.0f);
+
+        dustPoints1->drawParticles();
+    }
+
+    if (dust_chunk_render_shader && dustPoints1)
+    {
+        dust_chunk_render_shader->bind();
+
+        glUniformMatrix4fv(glGetUniformLocation(dust_chunk_render_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        glUniform3fv(glGetUniformLocation(dust_chunk_render_shader->getProgram(), "u_CameraPos"), 1, glm::value_ptr(camera.getPosition()));
+        glUniform1f(glGetUniformLocation(dust_chunk_render_shader->getProgram(), "u_LodNear"), 300.0f);
+        glUniform1f(glGetUniformLocation(dust_chunk_render_shader->getProgram(), "u_LodFar"), 600.0f);
+        glUniform1f(glGetUniformLocation(dust_chunk_render_shader->getProgram(), "u_PointScale"), 10.0f);
+
+        dustPoints1->drawChunks();
     }
 }

@@ -44,17 +44,24 @@ private:
 
     std::unique_ptr<Shader> triangle_render_shader;
     std::unique_ptr<Shader> dust_render_shader;
+    std::unique_ptr<Shader> dust_chunk_render_shader;
+
     std::unique_ptr<Shader> dust_apply_forces_shader;
     std::unique_ptr<Shader> dust_upload_shader;
-    std::unique_ptr<Shader> dust_cull_count_shader;
-    std::unique_ptr<Shader> dust_cull_scan_shader;
-    std::unique_ptr<Shader> dust_cull_scatter_shader;
+
+    std::unique_ptr<Shader> dust_chunk_cull_shader;
+    std::unique_ptr<Shader> dust_particle_scatter_shader;
+    std::unique_ptr<Shader> dust_indirect_update_shader;
 
     std::unique_ptr<triangleRenderer> triangleMesh1;
     std::unique_ptr<sphereRenderer> sphereMesh1;
     std::unique_ptr<dustRenderer> dustPoints1;
 
+    uint32_t frameOffset = 0;
+
     double lastMouseX = 0.0;
     double lastMouseY = 0.0;
     bool firstMouse = true;
+
+    static constexpr uint32_t PARTICLES_PER_CHUNK = 256;  // matches compute shader layout
 };

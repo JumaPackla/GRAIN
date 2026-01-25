@@ -1,8 +1,7 @@
 #version 450
-
 layout(local_size_x = 256) in;
 
-struct dustBody {
+struct DustBody {
     vec4 position;
     vec4 velocity;
     float radius;
@@ -12,7 +11,7 @@ struct dustBody {
 };
 
 layout(std430, binding = 0) buffer SimBuffer {
-    dustBody sim[];
+    DustBody sim[];
 };
 
 layout(std430, binding = 1) buffer RenderBuffer {
@@ -21,6 +20,8 @@ layout(std430, binding = 1) buffer RenderBuffer {
 
 void main()
 {
-    uint i = gl_GlobalInvocationID.x;
-    renderPos[i] = sim[i].position;
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= sim.length()) return;
+
+    renderPos[id] = sim[id].position;
 }

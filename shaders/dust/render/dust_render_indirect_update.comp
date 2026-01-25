@@ -1,0 +1,22 @@
+#version 450
+layout(local_size_x = 1) in;
+
+layout(std430, binding = 4) buffer VisibleCount {
+    uint count;
+};
+
+layout(std430, binding = 6) buffer IndirectBuffer {
+    uint vertexCount;
+    uint instanceCount;
+    uint first;
+    uint baseInstance;
+};
+
+void main()
+{
+    // Copy visible count to indirect draw command
+    vertexCount = count;
+    instanceCount = 1;
+    first = 0;
+    baseInstance = 0;
+}

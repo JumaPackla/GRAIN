@@ -8,7 +8,8 @@
 #include <iostream>
 #include <cstdio>
 
-namespace devTools {
+namespace devTools 
+{
 
     static GLFWwindow* g_Window = nullptr;
     int devTools::Manager::s_dustCount = 0;
