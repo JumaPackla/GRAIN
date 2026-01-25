@@ -10,14 +10,12 @@ namespace devTools {
         static void Init(GLFWwindow* window);
         static void SetDustCount(int dustCount);
         static void SetTimeSpeed(float timeSpeed);
-        static void SetZoom(float zoom);
         static void BeginFrame();
         static void EndFrame();
         static void Shutdown();
     private:
         static int s_dustCount;
         static float s_timeSpeed;
-        static float s_zoom;
     };
 
 }

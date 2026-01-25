@@ -78,6 +78,7 @@ void Application::initWindowGUI()
 
 void Application::initRenderShaders()
 {
+<<<<<<< HEAD
     triangle_render_shader = std::make_unique<Shader>("mesh/triangle_render.vert", "mesh/triangle_render.frag");
     dust_render_shader = std::make_unique<Shader>("dust/render/dust_render.vert", "dust/render/dust_render.frag");
     dust_chunk_render_shader = std::make_unique<Shader>("dust/render/dust_render_chunk.vert", "dust/render/dust_render_chunk.frag");
@@ -88,11 +89,19 @@ void Application::initRenderShaders()
     dust_particle_scatter_shader = std::make_unique<Shader>("dust/render/dust_render_particle_scatter.comp");
 
     dust_indirect_update_shader = std::make_unique<Shader>("dust/render/dust_render_indirect_update.comp");
+=======
+    triangle_shader = std::make_unique<Shader>("mesh/triangle_render.vert", "mesh/triangle_render.frag");
+    dust_shader = std::make_unique<Shader>("dust/render/dust_render.vert", "dust/render/dust_render.frag");
+>>>>>>> parent of df91cb2 (Culling)
 }
 
 void Application::initComputeShaders()
 {
+<<<<<<< HEAD
     dust_apply_forces_shader = std::make_unique<Shader>("dust/passes/dust_apply_forces.comp");
+=======
+    dust_compute_shader = std::make_unique<Shader>("dust/passes/dust_apply_forces.comp");
+>>>>>>> parent of df91cb2 (Culling)
 }
 
 void Application::initScene() 
@@ -114,7 +123,11 @@ void Application::initScene()
     //sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
     std::vector<dustBody> dustParticles;
+<<<<<<< HEAD
     int number_of_particles = 1000000;
+=======
+    int number_of_particles = 100000;
+>>>>>>> parent of df91cb2 (Culling)
     dustParticles.reserve(number_of_particles);
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
@@ -225,18 +238,19 @@ void Application::processInput()
 
     if (input.scrollY != 0.0f) {
         camera.scroll(input.scrollY);
-
-        input.scrollX = 0.0f;
-        input.scrollY = 0.0f;
     }
+
+    input.scrollX = 0.0f;
+    input.scrollY = 0.0f;
 }
 
-void Application::update()
+void Application::update() 
 {
     Time::update(glfwGetTime());
     float dt = Time::deltaTime();
     cameraController.update(camera, input, dt);
 
+<<<<<<< HEAD
     if (!dustPoints1)
         return;
 
@@ -252,9 +266,21 @@ void Application::update()
     {
         dust_apply_forces_shader->bind();
         glUniform1f(glGetUniformLocation(dust_apply_forces_shader->getProgram(), "u_DeltaTime"), Time::control(dt));
+=======
+    if (dust_compute_shader and (dustPoints1))
+    {
+        dust_compute_shader->bind();
+
+        glUniform1f(glGetUniformLocation(dust_compute_shader->getProgram(), "u_DeltaTime"), Time::control(dt));
+
+        GLuint count = static_cast<GLuint>(dustPoints1->getDustCount());
+        GLuint groups = (count + 255) / 256;
+>>>>>>> parent of df91cb2 (Culling)
         glDispatchCompute(groups, 1, 1);
+
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
+<<<<<<< HEAD
 
     // Step 2: Upload sim positions to render buffer
     if (dust_upload_shader)
@@ -306,6 +332,8 @@ void Application::update()
     }
 
     frameOffset = (frameOffset + 1) % 4;
+=======
+>>>>>>> parent of df91cb2 (Culling)
 }
 
 void Application::updateUI()
@@ -317,10 +345,6 @@ void Application::updateUI()
     #ifdef DEV_DISPLAY
         devTools::Manager::SetTimeSpeed(Time::getSpeed());
     #endif
-
-    #ifdef DEV_DISPLAY
-        devTools::Manager::SetZoom(camera.getZoom());
-    #endif
 }
 
 void Application::render()
@@ -329,10 +353,14 @@ void Application::render()
     glfwGetFramebufferSize(window, &width, &height);
     glm::mat4 vp = camera.getProjectionMatrix(float(width) / height);
 
+<<<<<<< HEAD
     if (triangle_render_shader && (triangleMesh1 || sphereMesh1))
+=======
+    if (triangle_shader and (triangleMesh1 or sphereMesh1))
+>>>>>>> parent of df91cb2 (Culling)
     {
-        triangle_render_shader->bind();
-        glUniformMatrix4fv(glGetUniformLocation(triangle_render_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        triangle_shader->bind();
+        glUniformMatrix4fv(glGetUniformLocation(triangle_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
 
         if (triangleMesh1)
             triangleMesh1->draw();
@@ -341,9 +369,16 @@ void Application::render()
             sphereMesh1->draw();
     }
 
+<<<<<<< HEAD
     if (dust_render_shader && dustPoints1)
     {
         dust_render_shader->bind();
+=======
+    if (dust_shader and (dustPoints1))
+    {
+        dust_shader->bind();
+        glUniformMatrix4fv(glGetUniformLocation(dust_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+>>>>>>> parent of df91cb2 (Culling)
 
         glUniformMatrix4fv(glGetUniformLocation(dust_render_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
         glUniform3fv(glGetUniformLocation(dust_render_shader->getProgram(), "u_CameraPos"), 1, glm::value_ptr(camera.getPosition()));

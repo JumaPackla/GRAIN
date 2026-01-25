@@ -14,7 +14,6 @@ namespace devTools
     static GLFWwindow* g_Window = nullptr;
     int devTools::Manager::s_dustCount = 0;
     float devTools::Manager::s_timeSpeed = 1.0f;
-    float devTools::Manager::s_zoom = 1.0f;
 
     void Manager::Init(GLFWwindow* window) {
         g_Window = window;
@@ -37,10 +36,6 @@ namespace devTools
         s_timeSpeed = timeSpeed;
     }
 
-    void Manager::SetZoom(float zoom) {
-        s_zoom = zoom;
-    }
-
     void Manager::BeginFrame() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -59,7 +54,6 @@ namespace devTools
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Text("Dust Count: %d", s_dustCount);
         ImGui::Text("Time Speed: %.2f", s_timeSpeed);
-        ImGui::Text("Zoom: %.1f", s_zoom);
 
         ImGui::End();
     }

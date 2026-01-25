@@ -5,6 +5,7 @@
 dustRenderer::dustRenderer(const std::vector<dustBody>& initialBodies)
 {
     dustCount = initialBodies.size();
+<<<<<<< HEAD
     chunkCount = (dustCount + 255) / 256;
 
     glGenVertexArrays(1, &VAO);
@@ -86,10 +87,20 @@ dustRenderer::dustRenderer(const std::vector<dustBody>& initialBodies)
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
     glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawArraysIndirectCommand), &cmd, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, indirectBuffer);
+=======
+
+    glGenBuffers(1, &SSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, dustCount * sizeof(dustBody), initialBodies.data(), GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, SSBO);
+
+    glGenVertexArrays(1, &VAO);
+>>>>>>> parent of df91cb2 (Culling)
 }
 
 dustRenderer::~dustRenderer()
 {
+<<<<<<< HEAD
     destroy();
 }
 
@@ -104,17 +115,32 @@ void dustRenderer::destroy()
     if (chunkVisibleSSBO) glDeleteBuffers(1, &chunkVisibleSSBO);
     if (indirectBuffer) glDeleteBuffers(1, &indirectBuffer);
     VAO = 0;
+=======
+    if (SSBO) glDeleteBuffers(1, &SSBO);
+    if (VAO) glDeleteVertexArrays(1, &VAO);
+>>>>>>> parent of df91cb2 (Culling)
 }
 
 dustRenderer::dustRenderer(dustRenderer&& other) noexcept
 {
+<<<<<<< HEAD
     *this = std::move(other);
+=======
+    VAO = other.VAO;
+    SSBO = other.SSBO;
+    dustCount = other.dustCount;
+
+    other.VAO = 0;
+    other.SSBO = 0;
+    other.dustCount = 0;
+>>>>>>> parent of df91cb2 (Culling)
 }
 
 dustRenderer& dustRenderer::operator=(dustRenderer&& other) noexcept
 {
     if (this != &other)
     {
+<<<<<<< HEAD
         destroy();
         VAO = other.VAO;
         simSSBO = other.simSSBO;
@@ -124,10 +150,18 @@ dustRenderer& dustRenderer::operator=(dustRenderer&& other) noexcept
         chunkSSBO = other.chunkSSBO;
         chunkVisibleSSBO = other.chunkVisibleSSBO;
         indirectBuffer = other.indirectBuffer;
+=======
+        if (VAO) glDeleteVertexArrays(1, &VAO);
+        if (SSBO) glDeleteBuffers(1, &SSBO);
+
+        VAO = other.VAO;
+        SSBO = other.SSBO;
+>>>>>>> parent of df91cb2 (Culling)
         dustCount = other.dustCount;
         chunkCount = other.chunkCount;
 
         other.VAO = 0;
+<<<<<<< HEAD
         other.simSSBO = 0;
         other.renderSSBO = 0;
         other.visibleSSBO = 0;
@@ -135,6 +169,9 @@ dustRenderer& dustRenderer::operator=(dustRenderer&& other) noexcept
         other.chunkSSBO = 0;
         other.chunkVisibleSSBO = 0;
         other.indirectBuffer = 0;
+=======
+        other.SSBO = 0;
+>>>>>>> parent of df91cb2 (Culling)
         other.dustCount = 0;
         other.chunkCount = 0;
     }
@@ -144,6 +181,7 @@ dustRenderer& dustRenderer::operator=(dustRenderer&& other) noexcept
 void dustRenderer::drawParticles()
 {
     glBindVertexArray(VAO);
+<<<<<<< HEAD
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
     glDrawArraysIndirect(GL_POINTS, nullptr);
     glBindVertexArray(0);
@@ -154,4 +192,7 @@ void dustRenderer::drawChunks()
     glBindVertexArray(VAO);
     glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(chunkCount));
     glBindVertexArray(0);
+=======
+    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(dustCount));
+>>>>>>> parent of df91cb2 (Culling)
 }

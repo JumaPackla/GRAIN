@@ -20,8 +20,6 @@ public:
     glm::mat4 getViewMatrix() const;
     glm::vec3 getPosition() const { return position; };
 
-    float getZoom() { return zoom; };
-
 private:
     void updateVectors();
 

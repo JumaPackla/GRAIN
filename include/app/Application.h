@@ -42,6 +42,7 @@ private:
     cameraController cameraController;
     inputState input;
 
+<<<<<<< HEAD
     std::unique_ptr<Shader> triangle_render_shader;
     std::unique_ptr<Shader> dust_render_shader;
     std::unique_ptr<Shader> dust_chunk_render_shader;
@@ -52,6 +53,11 @@ private:
     std::unique_ptr<Shader> dust_chunk_cull_shader;
     std::unique_ptr<Shader> dust_particle_scatter_shader;
     std::unique_ptr<Shader> dust_indirect_update_shader;
+=======
+    std::unique_ptr<Shader> triangle_shader;
+    std::unique_ptr<Shader> dust_shader;
+    std::unique_ptr<Shader> dust_compute_shader;
+>>>>>>> parent of df91cb2 (Culling)
 
     std::unique_ptr<triangleRenderer> triangleMesh1;
     std::unique_ptr<sphereRenderer> sphereMesh1;

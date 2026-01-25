@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include "particles/dustBody.h"
 
+<<<<<<< HEAD
 struct DrawArraysIndirectCommand {
     GLuint count;
     GLuint instanceCount;
@@ -21,6 +22,8 @@ struct DustChunk {
     uint32_t _pad1;
 };
 
+=======
+>>>>>>> parent of df91cb2 (Culling)
 class dustRenderer
 {
 public:
@@ -39,6 +42,7 @@ public:
     size_t getDustCount() const { return dustCount; }
     size_t getChunkCount() const { return chunkCount; }
 
+<<<<<<< HEAD
     GLuint getSimSSBO() const { return simSSBO; }
     GLuint getRenderSSBO() const { return renderSSBO; }
     GLuint getVisibleSSBO() const { return visibleSSBO; }
@@ -46,11 +50,16 @@ public:
     GLuint getChunkSSBO() const { return chunkSSBO; }
     GLuint getChunkVisibleSSBO() const { return chunkVisibleSSBO; }
     GLuint getIndirectBuffer() const { return indirectBuffer; }
+=======
+    //GLuint getSSBO() const { return SSBO; }
+    size_t getDustCount() const { return dustCount; }
+>>>>>>> parent of df91cb2 (Culling)
 
 private:
     void destroy();
 
     GLuint VAO = 0;
+<<<<<<< HEAD
 
     GLuint simSSBO = 0;             // binding 0
     GLuint renderSSBO = 0;          // binding 1
@@ -63,3 +72,10 @@ private:
     size_t dustCount = 0;
     size_t chunkCount = 0;
 };
+=======
+    GLuint SSBO = 0;
+
+    size_t dustCount = 0;
+    std::vector<dustBody> dustBodies;
+};
+>>>>>>> parent of df91cb2 (Culling)
