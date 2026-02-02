@@ -1,0 +1,36 @@
+#version 450
+
+layout(local_size_x = 256) in;
+
+struct dustBody 
+{
+    vec4 position;
+    vec4 velocity;
+    vec4 acceleration;
+    float radius;
+    float mass;
+    float _pad0;
+    float _pad1;
+};
+
+layout(std430, binding = 0) buffer DustSim {
+    dustBody particles[];
+};
+
+uniform float u_DeltaTime;
+
+void main()
+{
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= particles.length()) return;
+
+    if (particles[id].mass <= 0.0) return;
+
+    vec3 v = particles[id].velocity.xyz;
+    vec3 a = particles[id].acceleration.xyz;
+
+    v += a * u_DeltaTime;
+
+    particles[id].velocity.xyz = v;
+    particles[id].position.xyz += v * u_DeltaTime;
+}

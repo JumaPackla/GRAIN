@@ -1,0 +1,60 @@
+#version 450
+#define G 6.67430e-3
+
+layout(local_size_x = 256) in;
+
+struct dustBody
+{
+    vec4 position;
+    vec4 velocity;
+    vec4 acceleration;
+    float radius;
+    float mass;
+    float _pad0;
+    float _pad1;
+};
+
+layout(std430, binding = 0) buffer DustSim
+{
+    dustBody particles[];
+};
+
+uniform float u_Softening;
+uniform float u_MaxAccel;
+
+void main()
+{
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= particles.length()) return;
+
+    float m1 = particles[id].mass;
+    if (m1 <= 0.0) {
+        particles[id].acceleration = vec4(0.0);
+        return;
+    }
+
+    vec3 pos1 = particles[id].position.xyz;
+    vec3 acc = vec3(0.0);
+
+    for (uint j = 0; j < particles.length(); j++) {
+        if (j == id) continue;
+
+        float m2 = particles[j].mass;
+        if (m2 <= 0.0) continue;
+
+        vec3 r = particles[j].position.xyz - pos1;
+        float soft = max(particles[id].radius + particles[j].radius, u_Softening);
+        float r2 = dot(r, r) + soft * soft;
+        float invR = inversesqrt(r2);
+        float invR3 = invR * invR * invR;
+
+        acc += G * m2 * r * invR3;
+    }
+
+    float aLen = length(acc);
+    if (aLen > u_MaxAccel) {
+        acc *= u_MaxAccel / aLen;
+    }
+
+    particles[id].acceleration.xyz = acc;
+}

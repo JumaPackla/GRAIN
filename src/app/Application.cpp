@@ -80,17 +80,17 @@ void Application::initRenderShaders()
 {
     triangle_render_shader = std::make_unique<Shader>("mesh/triangle_render.vert", "mesh/triangle_render.frag");
     dust_render_shader = std::make_unique<Shader>("dust/render/dust_render.vert", "dust/render/dust_render.frag");
+
+    dust_render_upload_shader = std::make_unique<Shader>("dust/render/dust_render_upload.comp");
+
+    dust_render_cull_count_shader = std::make_unique<Shader>("dust/render/dust_render_cull_count.comp");
+    dust_render_cull_scan_shader = std::make_unique<Shader>("dust/render/dust_render_cull_scan.comp");
+    dust_render_cull_scatter_shader = std::make_unique<Shader>("dust/render/dust_render_cull_scatter.comp");
 }
 
 void Application::initComputeShaders()
 {
-    dust_apply_forces_shader = std::make_unique<Shader>("dust/passes/dust_apply_forces.comp");
-
-    dust_upload_shader = std::make_unique<Shader>("dust/render/dust_render_upload.comp");
-
-    dust_cull_count_shader = std::make_unique<Shader>("dust/render/dust_render_cull_count.comp");
-    dust_cull_scan_shader = std::make_unique<Shader>("dust/render/dust_render_cull_scan.comp");
-    dust_cull_scatter_shader = std::make_unique<Shader>("dust/render/dust_render_cull_scatter.comp");
+    dustSim.setShader(std::make_unique<Shader>("dust/forces/gravity.compinc"), std::make_unique<Shader>("dust/passes/dust_integrate.comp"));
 }
 
 void Application::initScene() 
@@ -108,21 +108,21 @@ void Application::initScene()
 
     triangleMesh1 = std::make_unique<triangleRenderer>(vertices, indices);
 
-    sphereBody sphereBody1;
-    sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
+    //sphereBody sphereBody1;
+    //sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
     std::vector<dustBody> dustParticles;
-    int number_of_particles = 3000000;
+    int number_of_particles = 10000;
     dustParticles.reserve(number_of_particles);
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
-    float max_x = 100.0f;
-    float min_x = -100.0f;
-    float max_y = 10.0f;
-    float min_y = -10.0f;
-    float max_z = 100.0f;
-    float min_z = -100.0f;
+    float max_x = 10.0f;
+    float min_x = -10.0f;
+    float max_y = 1.0f;
+    float min_y = -1.0f;
+    float max_z = 10.0f;
+    float min_z = -10.0f;
 
     //double min_vel = 0;
     //double max_vel = 1;
@@ -141,6 +141,7 @@ void Application::initScene()
         //    min_vel + static_cast<double>(rand()) / RAND_MAX * (max_vel - min_vel),
         //    0.0f);
         dustParticle.velocity = glm::vec4(0.0f);
+        dustParticle.acceleration = glm::vec4(0.0f);
         dustParticle.radius = 0.1f;
         dustParticle.mass = 0.1f;
         dustParticles.push_back(dustParticle);
@@ -242,24 +243,36 @@ void Application::update()
     const GLuint count = static_cast<GLuint>(dustPoints1->getDustCount());
     const GLuint groups = (count + 255) / 256;
 
-    if (dust_apply_forces_shader)
-    {
-        dust_apply_forces_shader->bind();
+    //if (gravity_shader)
+    //{
+    //    gravity_shader->bind();
 
-        glUniform1f(glGetUniformLocation(dust_apply_forces_shader->getProgram(), "u_DeltaTime"), Time::control(dt));
-        glDispatchCompute(groups, 1, 1);
-        glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    }
+    //    glUniform1f(glGetUniformLocation(gravity_shader->getProgram(), "u_Softening"), 0.01);
+    //    glUniform1f(glGetUniformLocation(gravity_shader->getProgram(), "u_MaxAccel"), 1000.0);
+    //    glDispatchCompute(groups, 1, 1);
+    //    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+    //}
 
-    if (dust_upload_shader)
+    //if (dust_integrate_shader)
+    //{
+    //    dust_integrate_shader->bind();
+
+    //    glUniform1f(glGetUniformLocation(dust_integrate_shader->getProgram(), "u_DeltaTime"), Time::control(dt));
+    //    glDispatchCompute(groups, 1, 1);
+    //    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    //}
+
+    dustSim.update(dt);
+
+    if (dust_render_upload_shader)
     {
-        dust_upload_shader->bind();
+        dust_render_upload_shader->bind();
 
         glDispatchCompute(groups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
     }
 
-    if (dust_cull_count_shader && dust_cull_scan_shader && dust_cull_scatter_shader)
+ /*   if (dust_render_cull_count_shader && dust_render_cull_scan_shader && dust_render_cull_scatter_shader)
     {
         GLuint zero = 0;
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, dustPoints1->getTempCountsSSBO());
@@ -274,21 +287,21 @@ void Application::update()
         float aspect = float(width) / height;
         glm::mat4 vp = camera.getProjectionMatrix(float(width) / height);
 
-        dust_cull_count_shader->bind();
-        glUniformMatrix4fv( glGetUniformLocation(dust_cull_count_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        dust_render_cull_count_shader->bind();
+        glUniformMatrix4fv( glGetUniformLocation(dust_render_cull_count_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
         glDispatchCompute(groups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-        dust_cull_scan_shader->bind();
-        glUniform1ui(glGetUniformLocation(dust_cull_scan_shader->getProgram(), "u_GroupCount"), groups);
+        dust_render_cull_scan_shader->bind();
+        glUniform1ui(glGetUniformLocation(dust_render_cull_scan_shader->getProgram(), "u_GroupCount"), groups);
         glDispatchCompute(1, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-        dust_cull_scatter_shader->bind();
-        glUniformMatrix4fv(glGetUniformLocation(dust_cull_scatter_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
+        dust_render_cull_scatter_shader->bind();
+        glUniformMatrix4fv(glGetUniformLocation(dust_render_cull_scatter_shader->getProgram(), "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(vp));
         glDispatchCompute(groups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
-    }
+    }*/
 }
 
 void Application::updateUI()
@@ -322,9 +335,9 @@ void Application::render()
         if (triangleMesh1) {
             triangleMesh1->draw();
         }
-        //if (sphereMesh1) {
-        //    sphereMesh1->draw();
-        //}
+        if (sphereMesh1) {
+            sphereMesh1->draw();
+        }
     }
 
     if (dust_render_shader and (dustPoints1))

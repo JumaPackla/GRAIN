@@ -5,6 +5,7 @@ layout(local_size_x = 256) in;
 struct dustBody {
     vec4 position;
     vec4 velocity;
+    vec4 acceleration;
     float radius;
     float mass;
     float _pad0;

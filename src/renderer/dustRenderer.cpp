@@ -103,8 +103,8 @@ void dustRenderer::draw()
 {
     glBindVertexArray(VAO);
     
-    //glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(dustCount));
+    glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(dustCount));
 
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
-    glDrawArraysIndirect(GL_POINTS, nullptr);
+    //glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
+    //glDrawArraysIndirect(GL_POINTS, nullptr);
 }

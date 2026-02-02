@@ -12,6 +12,9 @@
 #include "renderer/sphereRenderer.h"
 #include "renderer/dustRenderer.h"
 
+#include "simulation/dustSim.h"
+
+
 struct GLFWwindow;
 
 class Application {
@@ -41,14 +44,14 @@ private:
     Camera camera;
     cameraController cameraController;
     inputState input;
+    dustSimulation dustSim;
 
     std::unique_ptr<Shader> triangle_render_shader;
     std::unique_ptr<Shader> dust_render_shader;
-    std::unique_ptr<Shader> dust_apply_forces_shader;
-    std::unique_ptr<Shader> dust_upload_shader;
-    std::unique_ptr<Shader> dust_cull_count_shader;
-    std::unique_ptr<Shader> dust_cull_scan_shader;
-    std::unique_ptr<Shader> dust_cull_scatter_shader;
+    std::unique_ptr<Shader> dust_render_upload_shader;
+    std::unique_ptr<Shader> dust_render_cull_count_shader;
+    std::unique_ptr<Shader> dust_render_cull_scan_shader;
+    std::unique_ptr<Shader> dust_render_cull_scatter_shader;
 
     std::unique_ptr<triangleRenderer> triangleMesh1;
     std::unique_ptr<sphereRenderer> sphereMesh1;
