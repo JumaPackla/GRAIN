@@ -1,10 +1,9 @@
 #pragma once
 
-#include <vector>
+#include <cstddef>
 #include <glad/glad.h>
 
-#include "particles/dustBody.h"
-
+#include "simulation/dustSim.h"
 
 struct DrawArraysIndirectCommand {
     GLuint count;
@@ -13,10 +12,9 @@ struct DrawArraysIndirectCommand {
     GLuint baseInstance;
 };
 
-class dustRenderer
-{
+class dustRenderer {
 public:
-    dustRenderer(const std::vector<dustBody>& initialBodies);
+    explicit dustRenderer(dustSimulation& sim);
 
     dustRenderer(const dustRenderer&) = delete;
     dustRenderer& operator=(const dustRenderer&) = delete;
@@ -28,17 +26,16 @@ public:
 
     void draw();
 
-    size_t getDustCount() const { return dustCount; };
-
-    GLuint getSimSSBO() const { return simSSBO; };
-    GLuint getRenderSSBO() const { return renderSSBO; };
-    GLuint getVisibleSSBO() const { return visibleSSBO; };
-    GLuint getTempCountsSSBO() const { return tempCountsSSBO; };
-    GLuint getIndirectBuffer() const { return indirectBuffer; };
+    GLuint getRenderSSBO() const { return renderSSBO; }
+    GLuint getVisibleSSBO() const { return visibleSSBO; }
+    GLuint getTempCountsSSBO() const { return tempCountsSSBO; }
+    GLuint getIndirectBuffer() const { return indirectBuffer; }
 
 private:
+    dustSimulation& simulation;
+
     GLuint VAO = 0;
-    GLuint simSSBO = 0;
+
     GLuint renderSSBO = 0;
     GLuint visibleSSBO = 0;
     GLuint tempCountsSSBO = 0;

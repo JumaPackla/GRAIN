@@ -15,11 +15,17 @@ public:
     static std::string getShaderPath(const std::string& relativePath);
     static std::string readFile(const std::string& filePath);
 
-    GLuint getProgram() const { return shader_program; }
+    void setUniform(const char* name, float v) const;
+    void setUniform(const char* name, unsigned int v) const;
+    void setUniform(const char* name, int v) const;
 
+    GLuint getProgram() const { return shader_program; }
 
 private:
     GLuint shader_program = 0;
 
     void compileAndLink(GLuint vertexShader, GLuint fragmentShader);
+
+    void checkCompileErrors(GLuint shader, const std::string& type, const std::string& path, const std::string& source);
+    void checkLinkErrors(GLuint program, const std::string& type);
 };
