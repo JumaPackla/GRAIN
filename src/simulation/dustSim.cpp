@@ -33,6 +33,19 @@ void dustSimulation::setShader(std::unique_ptr<Shader> gravity, std::unique_ptr<
     leapfrog_step_shader = std::move(leapfrog_step);
 }
 
+void dustSimulation::initLeapfrog(float dt)
+{
+    GLuint count = static_cast<GLuint>(dustCount);
+    GLuint groups = (count + 255) / 256;
+
+    leapfrog_init_shader->bind();
+    leapfrog_init_shader->setUniform("u_DeltaTime", dt);
+    leapfrog_init_shader->setUniform("u_ParticleCount", count);
+
+    glDispatchCompute(groups, 1, 1);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+}
+
 void dustSimulation::update(float dt)
 {
     if (!leapfrogInitialized)
@@ -77,17 +90,4 @@ void dustSimulation::stepPhysics(float dt)
         glDispatchCompute(groups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
-}
-
-void dustSimulation::initLeapfrog(float dt)
-{
-    GLuint count = static_cast<GLuint>(dustCount);
-    GLuint groups = (count + 255) / 256;
-
-    leapfrog_init_shader->bind();
-    leapfrog_init_shader->setUniform("u_DeltaTime", dt);
-    leapfrog_init_shader->setUniform("u_ParticleCount", count);
-
-    glDispatchCompute(groups, 1, 1);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }

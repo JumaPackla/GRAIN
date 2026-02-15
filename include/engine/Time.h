@@ -3,12 +3,17 @@
 class Time 
 {
 public:
-    static float control(double currentTime);
     static void update(double currentTime);
     static float deltaTime();
-    static float getSpeed();
+    static float simDeltaTime();
+    static void setSimSpeed(float newSpeed);
+    static float getSimSpeed();
+    static void togglePause();
+    static bool isPaused();
 private:
     static double lastTime;
-    static float dt;
-    static float speed;
+    static float realDT;
+    static float simDT;
+    static float simSpeed;
+    static bool paused;
 };

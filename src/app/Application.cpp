@@ -6,6 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "app/Application.h"
+#include "app/GLFWInputAdaptor.h"
 #include "particles/sphereBody.h"
 #include "particles/dustBody.h"
 
@@ -54,7 +55,14 @@ void Application::initGLFW()
     glfwSetWindowUserPointer(window, this);
 
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-    glfwSetScrollCallback(window, scrollCallback);
+    glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+        if (!app) return;
+        if (app->inputState.mouseCaptured) {
+            app->inputState.scrollX += static_cast<float>(xoffset);
+            app->inputState.scrollY += static_cast<float>(yoffset);
+        }
+        });
 }
 
 void Application::initGLAD()
@@ -115,7 +123,7 @@ void Application::initScene()
     //sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
     std::vector<dustBody> dustParticles;
-    int particleCount = 10000;
+    int particleCount = 1000;
     dustParticles.reserve(particleCount);
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
@@ -150,15 +158,6 @@ void Application::framebufferSizeCallback(GLFWwindow* window, int width, int hei
     glViewport(0, 0, width, height);
 }
 
-void Application::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    auto* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
-    if (!app) return;
-
-    app->input.scrollX += static_cast<float>(xoffset);
-    app->input.scrollY += static_cast<float>(yoffset);
-}
-
 void Application::run() 
 {
 
@@ -190,54 +189,26 @@ void Application::run()
 
 void Application::processInput()
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
+    GLFWInputAdapter::pollInput(window, inputState);
 
-    input.moveForward =
-        float(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) -
-        float(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
+    if (inputState.togglePause)
+        Time::togglePause();
 
-    input.moveRight =
-        float(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) -
-        float(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
-
-    input.moveUp =
-        float(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) -
-        float(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS);
-
-    double mouseX, mouseY;
-    glfwGetCursorPos(window, &mouseX, &mouseY);
-
-    if (firstMouse) {
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
-        firstMouse = false;
-    }
-
-    input.mouseDeltaX = float(mouseX - lastMouseX);
-    input.mouseDeltaY = float(lastMouseY - mouseY);
-
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
-
-    if (input.scrollY != 0.0f) {
-        camera.scroll(input.scrollY);
-
-        input.scrollX = 0.0f;
-        input.scrollY = 0.0f;
+    if (inputState.scrollY != 0.0f)
+    {
+        camera.scroll(inputState.scrollY);
+        inputState.scrollX = 0.0f;
+        inputState.scrollY = 0.0f;
     }
 }
 
 void Application::update()
 {
     Time::update(glfwGetTime());
-    float dt = Time::deltaTime();
-    
-    cameraController.update(camera, input, dt);
 
-    dustSim.update(dt);
-    //debug->printVec4("acceleration");
+    cameraController.update(camera, inputState, Time::deltaTime());
+
+    dustSim.update(Time::simDeltaTime());
 
     if (dust_render_upload_shader)
     {
@@ -286,7 +257,7 @@ void Application::updateUI()
     #endif
 
     #ifdef DEV_DISPLAY
-        devTools::Manager::SetTimeSpeed(Time::getSpeed());
+        devTools::Manager::SetTimeSpeed(Time::getSimSpeed());
     #endif
 
     #ifdef DEV_DISPLAY

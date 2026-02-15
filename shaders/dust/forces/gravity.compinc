@@ -21,15 +21,15 @@ layout(std430, binding = 1) buffer DustSim {
 
 uniform float u_Softening;
 uniform float u_MaxAccel;
-uniform uint  u_ParticleCount;
+uniform uint u_ParticleCount;
 
-shared vec4  shPos[TILE_SIZE];
+shared vec4 shPos[TILE_SIZE];
 shared float shMass[TILE_SIZE];
 shared float shRadius[TILE_SIZE];
 
 void main()
 {
-    uint id      = gl_GlobalInvocationID.x;
+    uint id = gl_GlobalInvocationID.x;
     uint localId = gl_LocalInvocationID.x;
 
     bool isAlive = (id < u_ParticleCount) && (particles[id].mass > 0.0);
@@ -46,8 +46,8 @@ void main()
 
         if (idx < u_ParticleCount)
         {
-            shPos[localId]    = particles[idx].position;
-            shMass[localId]   = particles[idx].mass;
+            shPos[localId] = particles[idx].position;
+            shMass[localId] = particles[idx].mass;
             shRadius[localId] = particles[idx].radius;
         }
         else

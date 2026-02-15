@@ -95,7 +95,4 @@ void dustRenderer::draw()
     glBindVertexArray(VAO);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, simulation.getSimSSBO());
     glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(dustCount));
-
-    // glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
-    // glDrawArraysIndirect(GL_POINTS, nullptr);
 }

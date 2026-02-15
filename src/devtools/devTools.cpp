@@ -8,6 +8,8 @@
 #include <iostream>
 #include <cstdio>
 
+#include "engine/Time.h"
+
 namespace devTools {
 
     static GLFWwindow* g_Window = nullptr;
@@ -57,8 +59,26 @@ namespace devTools {
 
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Text("Dust Count: %d", s_dustCount);
-        ImGui::Text("Time Speed: %.2f", s_timeSpeed);
         ImGui::Text("Zoom: %.1f", s_zoom);
+        ImGui::Text("Time Speed: %.2f", s_timeSpeed);
+
+        if (ImGui::Button(Time::isPaused() ? "Resume Time" : "Pause Time", ImVec2(130, 20))) {
+            Time::togglePause();
+        }
+
+        if (ImGui::Button("<", ImVec2(62.5, 20))) {
+            float new_speed = Time::getSimSpeed() - 1;
+            if (new_speed >= 0) {
+                Time::setSimSpeed(new_speed);
+            }
+        }
+        ImGui::SameLine(0.0f, 5.0f);
+        if (ImGui::Button(">", ImVec2(62.5, 20))) {
+            float new_speed = Time::getSimSpeed() + 1;
+            if (new_speed <= 20) {
+                Time::setSimSpeed(new_speed);
+            }
+        }
 
         ImGui::End();
     }

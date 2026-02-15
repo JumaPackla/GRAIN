@@ -1,22 +1,46 @@
 #include "engine/Time.h"
+#include <iostream>
 
 double Time::lastTime = 0.0;
-float Time::dt = 0.0f;
-float Time::speed = 1.0f;
+float Time::realDT = 0.0f;
+float Time::simDT = 0.0f;
+float Time::simSpeed = 1.0f;
+bool Time::paused = false;
 
-float Time::control(double currentTime) {
-    return static_cast<float>(currentTime * speed);
-}
-
-void Time::update(double currentTime) {
-    dt = static_cast<float>(currentTime - lastTime);
+void Time::update(double currentTime)
+{
+    realDT = static_cast<float>(currentTime - lastTime);
     lastTime = currentTime;
+
+    simDT = realDT * simSpeed * !paused;
 }
 
-float Time::deltaTime() {
-    return dt;
+float Time::deltaTime()
+{
+    return realDT;
 }
 
-float Time::getSpeed() {
-    return Time::speed;
+float Time::simDeltaTime()
+{
+    return simDT;
+}
+
+void Time::setSimSpeed(float newSpeed)
+{
+    simSpeed = newSpeed;
+}
+
+float Time::getSimSpeed()
+{
+    return simSpeed;
+}
+
+void Time::togglePause()
+{
+    paused = !paused;
+}
+
+bool Time::isPaused()
+{
+    return paused;
 }

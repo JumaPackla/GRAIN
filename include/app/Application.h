@@ -39,13 +39,12 @@ private:
     void render();
 
     static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
     GLFWwindow* window = nullptr;
 
     Camera camera;
     cameraController cameraController;
-    inputState input;
+    inputState inputState;
     dustSimulation dustSim;
 
     std::unique_ptr<debugBuffer> debug;
@@ -60,8 +59,4 @@ private:
     std::unique_ptr<triangleRenderer> triangleMesh1;
     std::unique_ptr<sphereRenderer> sphereMesh1;
     std::unique_ptr<dustRenderer> dustPoints1;
-
-    double lastMouseX = 0.0;
-    double lastMouseY = 0.0;
-    bool firstMouse = true;
 };
