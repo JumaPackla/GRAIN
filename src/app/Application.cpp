@@ -99,7 +99,10 @@ void Application::initRenderShaders()
 
 void Application::initComputeShaders()
 {
-    dustSim.setShader(std::make_unique<Shader>("dust/forces/gravity.compinc"), std::make_unique<Shader>("dust/passes/dust_leapfrog_init.comp"), std::make_unique<Shader>("dust/passes/dust_leapfrog_step.comp"));
+    dustSim.setShader(std::make_unique<Shader>("dust/barnes-hut/gravity.comp"), std::make_unique<Shader>("dust/passes/dust_leapfrog_init.comp"), std::make_unique<Shader>("dust/passes/dust_leapfrog_step.comp"),
+                      std::make_unique<Shader>("dust/barnes-hut/morton.comp"), std::make_unique<Shader>("dust/barnes-hut/radix_histogram.comp"), std::make_unique<Shader>("dust/barnes-hut/radix_scan.comp"),
+                      std::make_unique<Shader>("dust/barnes-hut/radix_scatter.comp"), std::make_unique<Shader>("dust/barnes-hut/lvbh_init_leaves.comp"), std::make_unique<Shader>("dust/barnes-hut/lvbh_build.comp"),
+                      std::make_unique<Shader>("dust/barnes-hut/lvbh_mass.comp"));
 }
 
 void Application::initScene() 
@@ -123,7 +126,7 @@ void Application::initScene()
     //sphereMesh1 = std::make_unique<sphereRenderer>(sphereBody1, 50, 100, glm::vec4(1, 0, 0, 1));
 
     std::vector<dustBody> dustParticles;
-    int particleCount = 1000;
+    int particleCount = 5000;
     dustParticles.reserve(particleCount);
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
@@ -149,6 +152,7 @@ void Application::initScene()
 
         dustParticles.push_back(dust);
     }
+
     dustSim.init(dustParticles.size(), dustParticles.data());
     dustPoints1 = std::make_unique<dustRenderer>(dustSim);
 }
@@ -218,8 +222,11 @@ void Application::update()
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
     }
 
-  /*if (dust_render_cull_count_shader && dust_render_cull_scan_shader && dust_render_cull_scatter_shader)
+    /*if (dust_render_cull_count_shader && dust_render_cull_scan_shader && dust_render_cull_scatter_shader)
     {
+        GLuint count = static_cast<GLuint>(dustPoints1->getDustCount());
+        GLuint groups = (count + 255) / 256;
+
         GLuint zero = 0;
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, dustPoints1->getTempCountsSSBO());
         glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);

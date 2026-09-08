@@ -1,0 +1,42 @@
+#version 450
+#include "bh_structs.compinc"
+
+layout(local_size_x = 16) in;
+
+#define BUCKETS 16
+
+layout(std430, binding = 9) buffer GlobalHistogram {
+    uint globalHist[BUCKETS];
+};
+
+layout(std430, binding = 10) buffer PrefixOutput {
+    uint prefix[BUCKETS];
+};
+
+shared uint temp[BUCKETS];
+
+void main()
+{
+    uint id = gl_LocalInvocationID.x;
+
+    temp[id] = globalHist[id];
+    barrier();
+
+    // Blelloch scan
+    for (uint offset = 1; offset < BUCKETS; offset <<= 1)
+    {
+        uint t = 0;
+        if (id >= offset)
+            t = temp[id - offset];
+
+        barrier();
+        temp[id] += t;
+        barrier();
+    }
+
+    // Convert to exclusive
+    if (id == 0)
+        prefix[0] = 0;
+    else
+        prefix[id] = temp[id - 1];
+}

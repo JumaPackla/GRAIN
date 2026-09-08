@@ -1,0 +1,31 @@
+#version 450
+#include "bh_structs.compinc"
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 8) buffer Nodes {
+    OctreeNode nodes[];
+};
+
+uniform uint u_ParticleCount;
+
+void main()
+{
+    uint id = gl_GlobalInvocationID.x;
+    uint N = u_ParticleCount;
+
+    if (id >= N - 1u) return;
+
+    uint left  = nodes[id].left;
+    uint right = nodes[id].right;
+
+    vec4 leftCOM  = nodes[left].centerOfMass;
+    vec4 rightCOM = nodes[right].centerOfMass;
+
+    float totalMass = leftCOM.w + rightCOM.w;
+
+    vec3 com = (leftCOM.xyz * leftCOM.w +
+                rightCOM.xyz * rightCOM.w) / totalMass;
+
+    nodes[id].centerOfMass = vec4(com, totalMass);
+}

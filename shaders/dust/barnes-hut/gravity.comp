@@ -1,0 +1,62 @@
+#version 450
+#include "bh_structs.compinc"
+
+#define G 6.67430e-3
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 1) buffer DustSim {
+    dustBody particles[];
+};
+
+layout(std430, binding = 8) buffer Nodes {
+    OctreeNode nodes[];
+};
+
+uniform float u_Theta;
+uniform float u_Softening;
+uniform uint  u_NodeCount;
+uniform uint  u_ParticleCount;
+
+void main()
+{
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= u_ParticleCount) return;
+
+    vec3 pos = particles[id].position.xyz;
+    vec3 acc = vec3(0.0);
+
+    // stack for traversal
+    uint stack[64];
+    int stackPtr = 0;
+    stack[stackPtr++] = 0; // root
+
+    while (stackPtr > 0)
+    {
+        uint nodeIdx = stack[--stackPtr];
+        OctreeNode node = nodes[nodeIdx];
+
+        vec3 com = node.centerOfMass.xyz;
+        float mass = node.centerOfMass.w;
+
+        vec3 r = com - pos;
+        float dist = length(r);
+
+        float size = node.boundsMax.x - node.boundsMin.x;
+
+        if (node.isLeaf == 1 || size / dist < u_Theta)
+        {
+            float inv = inversesqrt(dot(r,r) + u_Softening*u_Softening);
+            acc += G * mass * r * inv * inv * inv;
+        }
+        else
+        {
+            for (uint i = 0; i < 8; ++i)
+            {
+                stack[stackPtr++] = node.firstChild + i;
+            }
+        }
+    }
+
+    particles[id].acceleration.xyz = acc;
+}

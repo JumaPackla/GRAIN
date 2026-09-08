@@ -1,0 +1,38 @@
+#version 450
+#include "bh_structs.compinc"
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 1) buffer Particles {
+    dustBody particles[];
+};
+
+layout(std430, binding = 11) buffer SortedIndices {
+    uint indices[];
+};
+
+layout(std430, binding = 8) buffer Nodes {
+    OctreeNode nodes[];
+};
+
+uniform uint u_ParticleCount;
+
+void main()
+{
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= u_ParticleCount) return;
+
+    uint leafIndex = (u_ParticleCount - 1u) + id;
+    uint particleIndex = indices[id];
+
+    nodes[leafIndex].left = 0xFFFFFFFFu;
+    nodes[leafIndex].right = 0xFFFFFFFFu;
+    nodes[leafIndex].parent = 0xFFFFFFFFu;
+    nodes[leafIndex].isLeaf = 1u;
+    nodes[leafIndex].particleIndex = particleIndex;
+
+    vec3 pos = particles[particleIndex].position.xyz;
+    float mass = particles[particleIndex].mass;
+
+    nodes[leafIndex].centerOfMass = vec4(pos, mass);
+}

@@ -1,0 +1,101 @@
+#version 450
+#include "bh_structs.compinc"
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 6) buffer MortonKeys {
+    uint keys[];
+};
+
+layout(std430, binding = 8) buffer Nodes {
+    OctreeNode nodes[];
+};
+
+uniform uint u_ParticleCount;
+
+int delta(int i, int j, int N)
+{
+    if (j < 0 || j >= N) return -1;
+
+    uint keyA = keys[i];
+    uint keyB = keys[j];
+
+    if (keyA == keyB)
+        return 32 + int(findMSB(i ^ j));
+
+    return int(findMSB(keyA ^ keyB));
+}
+
+int findSplit(int first, int last)
+{
+    uint firstCode = keys[first];
+    uint lastCode  = keys[last];
+
+    if (firstCode == lastCode)
+        return (first + last) >> 1;
+
+    int commonPrefix = findMSB(firstCode ^ lastCode);
+
+    int split = first;
+    int step = last - first;
+
+    do {
+        step = (step + 1) >> 1;
+        int newSplit = split + step;
+
+        if (newSplit < last) {
+            uint splitCode = keys[newSplit];
+            int splitPrefix = findMSB(firstCode ^ splitCode);
+            if (splitPrefix > commonPrefix)
+                split = newSplit;
+        }
+    } while (step > 1);
+
+    return split;
+}
+
+void main()
+{
+    uint idx = gl_GlobalInvocationID.x;
+    uint N = u_ParticleCount;
+
+    if (idx >= N - 1u) return;
+
+    int d = (delta(int(idx), int(idx+1), int(N)) -
+             delta(int(idx), int(idx-1), int(N))) > 0 ? 1 : -1;
+
+    int deltaMin = delta(int(idx), int(idx - d), int(N));
+
+    int lmax = 2;
+    while (delta(int(idx), int(idx + lmax * d), int(N)) > deltaMin)
+        lmax <<= 1;
+
+    int l = 0;
+    for (int t = lmax >> 1; t > 0; t >>= 1)
+        if (delta(int(idx), int(idx + (l + t) * d), int(N)) > deltaMin)
+            l += t;
+
+    int j = int(idx) + l * d;
+
+    int first = min(int(idx), j);
+    int last  = max(int(idx), j);
+
+    int split = findSplit(first, last);
+
+    uint leftChild = (split == first)
+        ? (N - 1u) + uint(split)
+        : uint(split);
+
+    uint rightChild = (split + 1 == last)
+        ? (N - 1u) + uint(split + 1)
+        : uint(split + 1);
+
+    nodes[idx].left  = leftChild;
+    nodes[idx].right = rightChild;
+    nodes[idx].parent = 0xFFFFFFFFu;
+    nodes[idx].isLeaf = 0u;
+    nodes[idx].particleIndex = 0u;
+
+    nodes[leftChild].parent  = idx;
+    nodes[rightChild].parent = idx;
+}

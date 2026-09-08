@@ -1,0 +1,22 @@
+struct dustBody
+{
+    vec4 position;
+    vec4 velocity;
+    vec4 acceleration;
+    float mass;
+    float radius;
+    float _pad0;
+    float _pad1;
+};
+
+struct OctreeNode
+{
+    vec4 centerOfMass;   // xyz = COM, w = total mass
+
+    uint left;
+    uint right;
+    uint parent;
+
+    uint isLeaf;
+    uint particleIndex;  // valid only if leaf
+};

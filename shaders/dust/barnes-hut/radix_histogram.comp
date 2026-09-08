@@ -1,0 +1,44 @@
+#version 450
+#include "bh_structs.compinc"
+
+layout(local_size_x = 256) in;
+
+#define BUCKETS 16
+
+layout(std430, binding = 6) buffer MortonKeys {
+    uint keys[];
+};
+
+layout(std430, binding = 9) buffer GlobalHistogram {
+    uint globalHist[BUCKETS];
+};
+
+uniform uint u_ParticleCount;
+uniform uint u_BitOffset;
+
+shared uint localHist[BUCKETS];
+
+void main()
+{
+    uint lid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+
+    // Clear shared histogram
+    if (lid < BUCKETS)
+        localHist[lid] = 0;
+
+    barrier();
+
+    if (gid < u_ParticleCount)
+    {
+        uint key = keys[gid];
+        uint bucket = (key >> u_BitOffset) & 0xF;
+        atomicAdd(localHist[bucket], 1);
+    }
+
+    barrier();
+
+    // Accumulate into global histogram
+    if (lid < BUCKETS)
+        atomicAdd(globalHist[lid], localHist[lid]);
+}

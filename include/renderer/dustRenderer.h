@@ -31,6 +31,8 @@ public:
     GLuint getTempCountsSSBO() const { return tempCountsSSBO; }
     GLuint getIndirectBuffer() const { return indirectBuffer; }
 
+    size_t getDustCount() const { return dustCount; }
+
 private:
     dustSimulation& simulation;
 

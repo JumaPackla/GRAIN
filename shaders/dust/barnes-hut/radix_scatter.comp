@@ -1,0 +1,56 @@
+#version 450
+#include "bh_structs.compinc"
+
+layout(local_size_x = 256) in;
+
+#define BUCKETS 16
+
+layout(std430, binding = 6) buffer MortonKeys {
+    uint keys[];
+};
+
+layout(std430, binding = 7) buffer MortonTemp {
+    uint tempKeys[];
+};
+
+layout(std430, binding = 11) buffer ParticleIndices {
+    uint indices[];
+};
+
+layout(std430, binding = 12) buffer ParticleIndicesTemp {
+    uint tempIndices[];
+};
+
+layout(std430, binding = 10) buffer PrefixOutput {
+    uint prefix[BUCKETS];
+};
+
+uniform uint u_ParticleCount;
+uniform uint u_BitOffset;
+
+shared uint localOffsets[BUCKETS];
+
+void main()
+{
+    uint lid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+
+    if (lid < BUCKETS)
+        localOffsets[lid] = 0;
+
+    barrier();
+
+    if (gid >= u_ParticleCount)
+        return;
+
+    uint key = keys[gid];
+    uint bucket = (key >> u_BitOffset) & 0xF;
+
+    uint index = atomicAdd(localOffsets[bucket], 1);
+    barrier();
+
+    uint globalIndex = prefix[bucket] + index;
+
+    tempKeys[globalIndex] = key;
+    tempIndices[globalIndex] = indices[gid];
+}
