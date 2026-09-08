@@ -1,7 +1,11 @@
-#include "simulation/dustSim.h"
+#include <glad/glad.h>
 
-void dustSimulation::init(size_t particleCount, const void* initialData)
+#include "simulation/dustSim.h"
+#include "engine/Time.h"
+
+void dustSimulation::update(float frameDt)
 {
+<<<<<<< HEAD
     dustCount = particleCount;
 
     glGenBuffers(1, &simSSBO);
@@ -91,16 +95,20 @@ void dustSimulation::update(float dt)
 
     accumulator += dt;
 
+=======
+    accumulator += frameDt;
+>>>>>>> parent of c857c17 (uh leapforg works ig but slow)
     if (accumulator > 0.25f)
         accumulator = 0.25f;
 
     while (accumulator >= fixedDt)
     {
-        stepPhysics(fixedDt);
+        stepPhysics();
         accumulator -= fixedDt;
     }
 }
 
+<<<<<<< HEAD
 void dustSimulation::initLeapfrog(float dt)
 {
     GLuint count = static_cast<GLuint>(dustCount);
@@ -109,9 +117,19 @@ void dustSimulation::initLeapfrog(float dt)
     leapfrog_init_shader->bind();
     leapfrog_init_shader->setUniform("u_DeltaTime", dt);
     leapfrog_init_shader->setUniform("u_ParticleCount", count);
+=======
+void dustSimulation::stepPhysics()
+{
+    const GLuint count = dustPoints->getDustCount();
+    const GLuint groups = (count + 255) / 256;
+>>>>>>> parent of c857c17 (uh leapforg works ig but slow)
 
+    gravity_shader->bind();
+    glUniform1f(glGetUniformLocation(gravity_shader->getProgram(), "u_Softening"), 0.01);
+    glUniform1f(glGetUniformLocation(gravity_shader->getProgram(), "u_MaxAccel"), 1000.0);
     glDispatchCompute(groups, 1, 1);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+<<<<<<< HEAD
 }
 
 void dustSimulation::stepPhysics(float dt)
@@ -218,4 +236,11 @@ void dustSimulation::stepGravity()
         glDispatchCompute(groups, 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
+=======
+
+    dust_integrate_shader->bind();
+    glUniform1f(glGetUniformLocation(dust_integrate_shader->getProgram(), "u_DeltaTime"), Time::control(dt));
+    glDispatchCompute(groups, 1, 1);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+>>>>>>> parent of c857c17 (uh leapforg works ig but slow)
 }

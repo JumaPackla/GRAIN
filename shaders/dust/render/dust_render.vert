@@ -1,6 +1,6 @@
 #version 450 core
 
-layout(std430, binding = 2) readonly buffer DustRender {
+layout(std430, binding = 1) buffer DustRender {
     vec4 renderPos[];
 };
 

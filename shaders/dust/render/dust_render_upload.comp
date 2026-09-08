@@ -12,11 +12,11 @@ struct dustBody {
     float _pad1;
 };
 
-layout(std430, binding = 1) readonly buffer SimBuffer {
+layout(std430, binding = 0) buffer SimBuffer {
     dustBody sim[];
 };
 
-layout(std430, binding = 2) writeonly buffer RenderBuffer {
+layout(std430, binding = 1) buffer RenderBuffer {
     vec4 renderPos[];
 };
 

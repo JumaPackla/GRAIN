@@ -1,10 +1,7 @@
 #pragma once
 
-#include <memory>
-#include <cstddef>
-#include <glad/glad.h>
+#include <cstdint>
 #include "engine/Shader.h"
-#include "particles/dustBody.h"
 
 struct OctreeNode
 {
@@ -19,9 +16,10 @@ struct OctreeNode
 
 class dustSimulation {
 public:
-    void init(size_t particleCount, const void* initialData);
+    void init();
     void update(float frameDt);
 
+<<<<<<< HEAD
     void setShader(
         std::unique_ptr<Shader> gravity,
         std::unique_ptr<Shader> leapfrog_init,
@@ -34,13 +32,17 @@ public:
         std::unique_ptr<Shader> lvbh_build,
         std::unique_ptr<Shader> lvbh_mass);
 
+=======
+    void setShader(std::unique_ptr<Shader> gravity, std::unique_ptr<Shader> integrate) {
+        gravity_shader = std::move(gravity);
+        dust_integrate_shader = std::move(integrate);
+    }
+>>>>>>> parent of c857c17 (uh leapforg works ig but slow)
     void setSoftening(float s) { softening = s; }
     void setMaxAccel(float a) { maxAccel = a; }
 
-    size_t getDustCount() const { return dustCount; }
-    GLuint getSimSSBO() const { return simSSBO; }
-
 private:
+<<<<<<< HEAD
     void stepPhysics(float dt);
     void initLeapfrog(float dt);
     void stepGravity();
@@ -57,6 +59,9 @@ private:
     size_t nodeCapacity = 0;
 
     size_t dustCount = 0;
+=======
+    void stepPhysics();
+>>>>>>> parent of c857c17 (uh leapforg works ig but slow)
 
     float accumulator = 0.0f;
     float fixedDt = 1.0f / 120.0f;
@@ -65,6 +70,7 @@ private:
     float maxAccel = 1000.0f;
 
     std::unique_ptr<Shader> gravity_shader;
+<<<<<<< HEAD
     std::unique_ptr<Shader> leapfrog_init_shader;
     std::unique_ptr<Shader> leapfrog_step_shader;
 
@@ -80,3 +86,7 @@ private:
 
     bool leapfrogInitialized = false;
 };
+=======
+    std::unique_ptr<Shader> dust_integrate_shader;
+};
+>>>>>>> parent of c857c17 (uh leapforg works ig but slow)

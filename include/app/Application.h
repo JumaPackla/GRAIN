@@ -12,8 +12,6 @@
 #include "renderer/sphereRenderer.h"
 #include "renderer/dustRenderer.h"
 
-#include "devtools/debugBuffer.h"
-
 #include "simulation/dustSim.h"
 
 
@@ -46,8 +44,6 @@ private:
     cameraController cameraController;
     inputState inputState;
     dustSimulation dustSim;
-
-    std::unique_ptr<debugBuffer> debug;
 
     std::unique_ptr<Shader> triangle_render_shader;
     std::unique_ptr<Shader> dust_render_shader;
